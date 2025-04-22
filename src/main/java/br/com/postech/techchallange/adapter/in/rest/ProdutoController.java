@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/produtos")
 public class ProdutoController {
 
-    private final BuscarProdutoUseCase buscarProdutoUseCase;
+	private final BuscarProdutoUseCase buscarProdutoUseCase;
 
-    public ProdutoController(BuscarProdutoUseCase buscarProdutoUseCase) {
-        this.buscarProdutoUseCase = buscarProdutoUseCase;
-    }
+	public ProdutoController(BuscarProdutoUseCase buscarProdutoUseCase) {
+		this.buscarProdutoUseCase = buscarProdutoUseCase;
+	}
 
-    @GetMapping("/{id}")
-    public Produto buscarPorId(@PathVariable Long id) {
-        return buscarProdutoUseCase.buscarPorId(id);
-    }
+	@GetMapping("/{id}")
+	public Produto buscarPorId(@PathVariable Long id) {
+		return buscarProdutoUseCase.buscarPorId(id);
+	}
 }
