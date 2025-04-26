@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import br.com.postech.techchallange.domain.model.AdminRole;
@@ -19,7 +21,6 @@ import io.jsonwebtoken.lang.Collections;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 import jakarta.annotation.PostConstruct;
-
 @Component
 public class JwtProvider {
 
@@ -60,6 +61,14 @@ public class JwtProvider {
 				.expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration()))
 				.signWith(key, SIGNATURE_ALGORITHM)
 				.compact();
+	}
+
+	public String getCurrentUserEmail() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new RuntimeException("Usuário não autenticado");
+		}
+		return authentication.getName();
 	}
 
 	public String getEmailFromToken(String token) {

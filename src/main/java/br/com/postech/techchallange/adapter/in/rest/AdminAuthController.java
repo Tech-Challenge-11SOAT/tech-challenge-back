@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.postech.techchallange.adapter.in.rest.request.AdminRegisterRequest;
+import br.com.postech.techchallange.adapter.in.rest.request.ChangePasswordRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.LoginRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.RefreshTokenRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.TokenResponse;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminRole;
 import br.com.postech.techchallange.domain.model.AdminUser;
+import br.com.postech.techchallange.domain.port.in.AlterarSenhaAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.ConsultarAdminUseCase;
@@ -39,6 +41,7 @@ public class AdminAuthController {
 	private final TokenBlacklistService tokenBlacklistService;
 	private final AdminRoleRepositoryPort adminRoleRepository;
 	private final ConsultarAdminUseCase consultarUseCase;
+	private final AlterarSenhaAdminUseCase alterarSenhaUseCase;
 	private final JwtProvider jwtProvider;
 
 	@PostMapping("/login")
@@ -105,6 +108,22 @@ public class AdminAuthController {
 		return cadastrarUseCase.cadastrar(admin);
 	}
 
+	@PostMapping("/change-password")
+	@Operation(
+			summary = "Alterar senha",
+			description = "Permite que o administrador altere sua senha atual para uma nova."
+		)
+	@SecurityRequirement(name = "bearerAuth")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Senha alterada com sucesso."),
+			@ApiResponse(responseCode = "400", description = "Senha atual incorreta.")
+		})
+	public void changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+		String email = jwtProvider.getCurrentUserEmail();
+		this.alterarSenhaUseCase.alterarSenha(email, request.getCurrentPassword(), request.getNewPassword());
+	}
+
+	
 	@PostMapping("/logout")
 	@Operation(
 			summary = "Realizar logout",
