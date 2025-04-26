@@ -1,8 +1,10 @@
-package br.com.postech.techchallange.adapter.out.persistence.repository;
+package br.com.postech.techchallange.adapter.out.persistence.adapter;
 
 import br.com.postech.techchallange.domain.model.Pagamento;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import br.com.postech.techchallange.adapter.out.persistence.mapper.PagamentoMapper;
+import br.com.postech.techchallange.adapter.out.persistence.repository.PagamentoJpaRepository;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
