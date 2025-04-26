@@ -36,19 +36,28 @@ public class JwtProvider {
 		this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
 	}
 
-	public String generateToken(AdminUser admin) {
-		List<String> roles = Optional.of(admin.getRoles())
+	public String generateAccessToken(AdminUser admin) {
+		List<String> roles = Optional.ofNullable(admin.getRoles())
 				.orElse(Collections.emptyList())
 				.stream()
 				.map(AdminRole::getNome)
 				.toList();
-		
+
 		return Jwts.builder()
 				.subject(admin.getEmail())
 				.claim("idAdmin", admin.getId())
 				.claim("roles", roles)
 				.issuedAt(new Date())
-				.expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
+				.expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration()))
+				.signWith(key, SIGNATURE_ALGORITHM)
+				.compact();
+	}
+
+	public String generateRefreshToken(AdminUser admin) {
+		return Jwts.builder()
+				.subject(admin.getEmail())
+				.issuedAt(new Date())
+				.expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration()))
 				.signWith(key, SIGNATURE_ALGORITHM)
 				.compact();
 	}
