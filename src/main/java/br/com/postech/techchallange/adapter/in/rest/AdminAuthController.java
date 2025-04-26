@@ -14,6 +14,7 @@ import br.com.postech.techchallange.adapter.in.rest.response.AdminUserResponse;
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
+import br.com.postech.techchallange.domain.port.in.LogoutAdminUseCase;
 import br.com.postech.techchallange.infra.security.JwtProvider;
 import br.com.postech.techchallange.infra.security.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,8 +31,8 @@ public class AdminAuthController {
 
 	private final AutenticarAdminUseCase autenticarUseCase;
 	private final CadastrarAdminUseCase cadastrarUseCase;
+	private final LogoutAdminUseCase logoutAdminUseCase;
 	private final JwtProvider jwtProvider;
-	private final TokenBlacklistService tokenBlacklistService;
 
 	@PostMapping("/login")
 	@Operation(summary = "Autenticar um administrador")
@@ -61,11 +62,7 @@ public class AdminAuthController {
 	@PostMapping("/logout")
 	@Operation(summary = "Realizar logout")
 	public ResponseEntity<String> logout(HttpServletRequest request) {
-		String token = request.getHeader("Authorization");
-		if (token != null && token.startsWith("Bearer ")) {
-			token = token.substring(7);
-			tokenBlacklistService.blacklistToken(token);
-		}
+		logoutAdminUseCase.logout(request.getHeader("Authorization"));
 		return ResponseEntity.ok("Logout realizado com sucesso.");
 	}
 }

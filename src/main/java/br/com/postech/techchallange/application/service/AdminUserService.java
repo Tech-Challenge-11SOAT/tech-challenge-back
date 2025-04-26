@@ -10,21 +10,20 @@ import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.ConsultarAdminUseCase;
+import br.com.postech.techchallange.domain.port.in.LogoutAdminUseCase;
 import br.com.postech.techchallange.domain.port.out.AdminLogAcaoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.AdminUserRepositoryPort;
+import br.com.postech.techchallange.infra.security.TokenBlacklistService;
+import lombok.AllArgsConstructor;
 
 @Service
-public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminUseCase, ConsultarAdminUseCase {
+@AllArgsConstructor
+public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminUseCase, ConsultarAdminUseCase, LogoutAdminUseCase {
 
 	private final AdminUserRepositoryPort userRepository;
 	private final AdminLogAcaoRepositoryPort logRepository;
 	private final PasswordEncoder passwordEncoder;
-
-	public AdminUserService(AdminUserRepositoryPort userRepository, AdminLogAcaoRepositoryPort logRepository, PasswordEncoder passwordEncoder) {
-		this.userRepository = userRepository;
-		this.logRepository = logRepository;
-		this.passwordEncoder = passwordEncoder;
-	}
+	private final TokenBlacklistService tokenBlacklistService;
 
 	@Override
 	public AdminUser cadastrar(AdminUser admin) {
@@ -55,6 +54,14 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 		}
 
 		return admin;
+	}
+	
+	@Override
+	public void logout(String token) {
+		if (token != null && token.startsWith("Bearer ")) {
+			token = token.substring(7);
+			tokenBlacklistService.blacklistToken(token);
+		}
 	}
 
 	@Override
