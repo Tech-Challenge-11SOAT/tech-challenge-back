@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.postech.techchallange.adapter.in.rest.request.AdminRegisterRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.LoginRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.RefreshTokenRequest;
-import br.com.postech.techchallange.adapter.in.rest.response.AdminUserResponse;
 import br.com.postech.techchallange.adapter.in.rest.response.TokenResponse;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminRole;
@@ -104,14 +103,6 @@ public class AdminAuthController {
 		admin.setRoles(roles);
 
 		return cadastrarUseCase.cadastrar(admin);
-	}
-
-	@PostMapping("/inactivate")
-	@Operation(summary = "Inativar uma conta de administrador")
-	public AdminUserResponse inactivate(@RequestBody @Valid AdminUser adminUser) {
-		AdminUser novoAdmin = cadastrarUseCase.cadastrar(adminUser);
-		return AdminUserResponse.builder().id(novoAdmin.getId()).nome(novoAdmin.getNome()).email(novoAdmin.getEmail())
-				.ativo(novoAdmin.getAtivo()).dataCriacao(novoAdmin.getDataCriacao()).build();
 	}
 
 	@PostMapping("/logout")
