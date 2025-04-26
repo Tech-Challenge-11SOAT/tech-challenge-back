@@ -22,4 +22,8 @@ public class AdminUser {
 	private Boolean ativo;
 	private LocalDateTime dataCriacao;
 	private List<AdminRole> roles;
+	
+	public AdminUser semSenha() {
+		return new AdminUser(this.id, this.nome, this.email, null, this.ativo, this.dataCriacao, this.roles);
+	}
 }

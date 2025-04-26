@@ -31,34 +31,58 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-	        throws ServletException, IOException {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-	    String requestURI = request.getRequestURI();
-	    String token = this.parseToken(request);
+		String requestURI = request.getRequestURI();
+		logger.info("[JWT Filter] Nova requisição recebida: {}", requestURI);
 
-	    if (token != null && jwtProvider.validateToken(token) && !tokenBlacklistService.isTokenBlacklisted(token)) {
-	        Claims claims = jwtProvider.getClaims(token);
-	        String email = claims.getSubject();
+		String token = parseToken(request);
 
-	        List<String> roles = claims.get("roles", List.class);
+		try {
+			if (token == null) {
+				logger.info("[JWT Filter] Nenhum token JWT encontrado.");
+				filterChain.doFilter(request, response);
+				return;
+			}
 
-	        List<SimpleGrantedAuthority> authorities = roles.stream()
-	                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-	                .toList();
+			logger.info("[JWT Filter] Token JWT encontrado.");
 
-	        UsernamePasswordAuthenticationToken authentication =
-	                new UsernamePasswordAuthenticationToken(email, null, authorities);
+			if (!jwtProvider.validateToken(token)) {
+				logger.warn("[JWT Filter] 🚫 Token inválido.");
+				this.sendForbiddenResponse(response, "Token inválido. Por favor, realize o login novamente.");
+				return;
+			}
 
-	        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-	        SecurityContextHolder.getContext().setAuthentication(authentication);
+			if (tokenBlacklistService.isTokenBlacklisted(token)) {
+				logger.warn("[JWT Filter] 🚫 Token encontrado na blacklist.");
+				this.sendForbiddenResponse(response, "Token inválido (blacklist). Por favor, realize o login novamente.");
+				return;
+			}
 
-	        logger.info("[JWT Filter] Autenticação bem-sucedida para usuário: {} com roles: {}", email, roles);
-	    }
+			Claims claims = jwtProvider.getClaims(token);
+			String email = claims.getSubject();
+			List<String> roles = claims.get("roles", List.class);
 
-	    filterChain.doFilter(request, response);
+			List<SimpleGrantedAuthority> authorities = roles.stream()
+					.map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+					.toList();
+
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
+
+			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+
+			logger.info("[JWT Filter] ✅ Autenticação bem-sucedida para usuário: {} com roles: {}", email, roles);
+
+			filterChain.doFilter(request, response);
+		} catch (io.jsonwebtoken.ExpiredJwtException ex) {
+			logger.warn("[JWT Filter] 🚫 Token expirado.", ex);
+			sendForbiddenResponse(response, "Token expirado. Por favor, realize o login novamente.");
+		} catch (Exception ex) {
+			logger.error("[JWT Filter] 🚫 Erro no processamento do token.", ex);
+			sendForbiddenResponse(response, "Erro de autenticação. Por favor, realize o login novamente.");
+		}
 	}
-
 
 	private String parseToken(HttpServletRequest request) {
 		String headerAuth = request.getHeader("Authorization");
@@ -69,4 +93,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		return null;
 	}
+
+	private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		response.setContentType("application/json");
+		response.getWriter().write("""
+				{
+				    "error": "Forbidden",
+				    "message": "%s",
+				    "status": 403
+				}
+				""".formatted(message));
+	}
+
 }

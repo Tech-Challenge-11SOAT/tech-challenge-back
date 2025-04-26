@@ -93,6 +93,8 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 
 	@Override
 	public List<AdminUser> listar() {
-		return userRepository.listar();
+		return userRepository.listar().stream()
+				.map(AdminUser::semSenha)
+				.toList();
 	}
 }
