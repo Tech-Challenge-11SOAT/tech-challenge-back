@@ -22,6 +22,9 @@ import br.com.postech.techchallange.domain.port.out.AdminRoleRepositoryPort;
 import br.com.postech.techchallange.infra.security.JwtProvider;
 import br.com.postech.techchallange.infra.security.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -40,7 +43,14 @@ public class AdminAuthController {
 	private final JwtProvider jwtProvider;
 
 	@PostMapping("/login")
-	@Operation(summary = "Autenticar um administrador.")
+	@Operation(
+			summary = "Realizar login",
+			description = "Autentica um administrador e retorna tokens de acesso e refresh."
+		)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Login realizado com sucesso."),
+			@ApiResponse(responseCode = "400", description = "Credenciais inválidas.")
+		})
 	public TokenResponse login(@RequestBody LoginRequest request) {
 		AdminUser admin = autenticarUseCase.autenticar(request.email(), request.senha());
 
@@ -49,9 +59,16 @@ public class AdminAuthController {
 
 		return new TokenResponse(accessToken, refreshToken);
 	}
-	
+
 	@PostMapping("/refresh")
-	@Operation(summary = "Renovar token de acesso (access token) de um administrador.")
+	@Operation(
+			summary = "Renovar token de acesso",
+			description = "Gera um novo access token usando um refresh token válido."
+		)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Novo token de acesso gerado."),
+			@ApiResponse(responseCode = "400", description = "Refresh token inválido ou expirado.")
+		})
 	public TokenResponse refresh(@RequestBody RefreshTokenRequest request) {
 		if (!jwtProvider.validateToken(request.refreshToken())) {
 			throw new BusinessException("Refresh token inválido ou expirado.");
@@ -67,7 +84,14 @@ public class AdminAuthController {
 	}
 
 	@PostMapping("/register")
-	@Operation(summary = "Registrar um novo administrador")
+	@Operation(
+			summary = "Registrar novo administrador",
+			description = "Cadastra um novo administrador e associa roles a ele."
+		)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "201", description = "Administrador registrado com sucesso."),
+			@ApiResponse(responseCode = "400", description = "Erro de validação no cadastro.")
+		})
 	public AdminUser register(@RequestBody @Valid AdminRegisterRequest request) {
 		AdminUser admin = new AdminUser();
 		admin.setNome(request.getNome());
@@ -75,8 +99,7 @@ public class AdminAuthController {
 		admin.setSenhaHash(request.getSenha());
 
 		List<AdminRole> roles = adminRoleRepository.listarTodos().stream()
-				.filter(role -> request.getRolesIds().contains(role.getId()))
-				.toList();
+				.filter(role -> request.getRolesIds().contains(role.getId())).toList();
 
 		admin.setRoles(roles);
 
@@ -87,17 +110,20 @@ public class AdminAuthController {
 	@Operation(summary = "Inativar uma conta de administrador")
 	public AdminUserResponse inactivate(@RequestBody @Valid AdminUser adminUser) {
 		AdminUser novoAdmin = cadastrarUseCase.cadastrar(adminUser);
-		return AdminUserResponse.builder()
-				.id(novoAdmin.getId())
-				.nome(novoAdmin.getNome())
-				.email(novoAdmin.getEmail())
-				.ativo(novoAdmin.getAtivo())
-				.dataCriacao(novoAdmin.getDataCriacao())
-				.build();
+		return AdminUserResponse.builder().id(novoAdmin.getId()).nome(novoAdmin.getNome()).email(novoAdmin.getEmail())
+				.ativo(novoAdmin.getAtivo()).dataCriacao(novoAdmin.getDataCriacao()).build();
 	}
 
 	@PostMapping("/logout")
-	@Operation(summary = "Logout de administrador")
+	@Operation(
+			summary = "Realizar logout",
+			description = "Realiza logout do usuário, invalidando o token atual."
+		)
+	@SecurityRequirement(name = "bearerAuth")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Logout realizado com sucesso."),
+			@ApiResponse(responseCode = "403", description = "Token inválido ou expirado.")
+		})
 	public void logout(@RequestBody RefreshTokenRequest request) {
 		tokenBlacklistService.blacklistToken(request.refreshToken());
 	}
