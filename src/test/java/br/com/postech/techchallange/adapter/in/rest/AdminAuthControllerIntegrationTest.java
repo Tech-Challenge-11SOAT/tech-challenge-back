@@ -5,12 +5,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +21,10 @@ import br.com.postech.techchallange.adapter.in.rest.request.ChangePasswordReques
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.out.AdminUserRepositoryPort;
 import br.com.postech.techchallange.infra.security.JwtProvider;
+import jakarta.transaction.Transactional;
 
+@ActiveProfiles("test")
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 class AdminAuthControllerIntegrationTest {
@@ -39,9 +44,10 @@ class AdminAuthControllerIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@Test
-	void deveAlterarSenhaComSucesso() throws Exception {
-		// Arrange - cria o admin de teste se não existir
+	private String token;
+
+	@BeforeEach
+	void setup() {
 		AdminUser admin = adminUserRepository.buscarPorEmail("admin@example.com").orElseGet(() -> {
 			AdminUser novoAdmin = new AdminUser();
 			novoAdmin.setNome("Admin Teste");
@@ -52,16 +58,31 @@ class AdminAuthControllerIntegrationTest {
 			return adminUserRepository.salvar(novoAdmin);
 		});
 
-		String token = jwtProvider.generateAccessToken(admin);
+		AdminUser adminSalvo = adminUserRepository.buscarPorEmail("admin@example.com")
+				.orElseThrow(() -> new RuntimeException("Admin de teste não encontrado"));
 
+		token = jwtProvider.generateAccessToken(adminSalvo);
+	}
+
+	@Test
+	void deveAlterarSenhaComSucesso() throws Exception {
 		ChangePasswordRequest request = new ChangePasswordRequest("senhaAtual", "novaSenha123");
 
-		// Act + Assert
 		mockMvc.perform(post("/admin/auth/change-password")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.header("Authorization", "Bearer " + token))
+		.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(request)))
 				.andExpect(status().isOk());
 	}
 
+	@Test
+	void deveFalharComSenhaAtualIncorreta() throws Exception {
+		ChangePasswordRequest request = new ChangePasswordRequest("senhaErrada", "novaSenha123");
+
+		mockMvc.perform(post("/admin/auth/change-password")
+		.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer " + token)
+				.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isBadRequest());
+	}
 }

@@ -108,16 +108,18 @@ public class AdminAuthController {
 		return cadastrarUseCase.cadastrar(admin);
 	}
 
-	@PostMapping("/change-password")
 	@Operation(
-			summary = "Alterar senha",
-			description = "Permite que o administrador altere sua senha atual para uma nova."
+			summary = "Alterar senha do administrador",
+			description = "Permite que o administrador altere sua senha informando a senha atual e a nova senha."
 		)
-	@SecurityRequirement(name = "bearerAuth")
-	@ApiResponses(value = {
+		@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Senha alterada com sucesso."),
-			@ApiResponse(responseCode = "400", description = "Senha atual incorreta.")
+			@ApiResponse(responseCode = "400", description = "Senha atual incorreta ou erro de validação."),
+			@ApiResponse(responseCode = "403", description = "Token inválido ou expirado."),
+			@ApiResponse(responseCode = "500", description = "Erro interno no servidor.")
 		})
+		@SecurityRequirement(name = "bearerAuth")
+		@PostMapping("/change-password")
 	public void changePassword(@RequestBody @Valid ChangePasswordRequest request) {
 		String email = jwtProvider.getCurrentUserEmail();
 		this.alterarSenhaUseCase.alterarSenha(email, request.getCurrentPassword(), request.getNewPassword());

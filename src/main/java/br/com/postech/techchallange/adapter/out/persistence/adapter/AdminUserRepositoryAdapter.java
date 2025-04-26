@@ -31,16 +31,21 @@ public class AdminUserRepositoryAdapter implements AdminUserRepositoryPort {
 
 	@Override
 	public Optional<AdminUser> buscarPorId(Long id) {
-		return jpaRepository.findById(id).map(AdminUserMapper::toDomain);
+		return jpaRepository.findById(id)
+				.map(AdminUserMapper::toDomain);
 	}
 
 	@Override
 	public Optional<AdminUser> buscarPorEmail(String email) {
-		return jpaRepository.findByEmail(email).map(AdminUserMapper::toDomain);
+		return jpaRepository.findByEmail(email)
+				.map(AdminUserMapper::toDomain);
 	}
 
 	@Override
 	public List<AdminUser> listar() {
-		return jpaRepository.findAll().stream().map(AdminUserMapper::toDomain).toList();
+		return jpaRepository.findAll()
+				.stream()
+				.map(AdminUserMapper::toDomain)
+				.toList();
 	}
 }
