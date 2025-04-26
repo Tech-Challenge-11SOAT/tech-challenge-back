@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.ConsultarAdminUseCase;
-import br.com.postech.techchallange.domain.port.in.InativarAdminUseCase;
+import br.com.postech.techchallange.domain.port.in.ToggleAdminUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminUserController {
 
 	private final ConsultarAdminUseCase consultarUseCase;
-	private final InativarAdminUseCase inativarUseCase;
+	private final ToggleAdminUseCase toggleAdminUseCase;
 
 	@GetMapping
 	@Operation(summary = "Listar todos os administradores")
@@ -47,6 +47,16 @@ public class AdminUserController {
 			@ApiResponse(responseCode = "404", description = "Administrador não encontrado.")
 		})
 	public void inativar(@PathVariable Long id) {
-		inativarUseCase.inativar(id);
+		this.toggleAdminUseCase.toggle(id);
+	}
+	
+	@PatchMapping("/{id}/activate")
+	@Operation(summary = "Ativar um administrador")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "Administrador inativado com sucesso."),
+			@ApiResponse(responseCode = "404", description = "Administrador não encontrado.")
+		})
+	public void ativar(@PathVariable Long id) {
+		this.toggleAdminUseCase.toggle(id);
 	}
 }
