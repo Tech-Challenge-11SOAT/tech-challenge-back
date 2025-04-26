@@ -16,7 +16,6 @@ import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.LogoutAdminUseCase;
 import br.com.postech.techchallange.infra.security.JwtProvider;
-import br.com.postech.techchallange.infra.security.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
