@@ -20,35 +20,27 @@ public class AdminUserRepositoryAdapter implements AdminUserRepositoryPort {
 	private final AdminUserJpaRepository jpaRepository;
 
 	@Override
+	@Transactional
+	public AdminUser salvar(AdminUser admin) {
+		AdminUserEntity entity = AdminUserMapper.toEntity(admin);
+
+		AdminUserEntity saved = jpaRepository.save(entity);
+
+		return AdminUserMapper.toDomain(saved);
+	}
+
+	@Override
 	public Optional<AdminUser> buscarPorId(Long id) {
-		return jpaRepository.findById(id).map(AdminUserMapper::toDomain).map(this::removeSenhaHash);
+		return jpaRepository.findById(id).map(AdminUserMapper::toDomain);
 	}
 
 	@Override
 	public Optional<AdminUser> buscarPorEmail(String email) {
-		return jpaRepository.findByEmail(email)
-				.map(AdminUserMapper::toDomain);
-	}
-
-	@Override
-	@Transactional
-	public AdminUser salvar(AdminUser admin) {
-		AdminUserEntity entity = AdminUserMapper.toEntity(admin);
-		AdminUserEntity entitySalvo = jpaRepository.save(entity);
-		return AdminUserMapper.toDomain(entitySalvo);
+		return jpaRepository.findByEmail(email).map(AdminUserMapper::toDomain);
 	}
 
 	@Override
 	public List<AdminUser> listar() {
-		return jpaRepository.findAll()
-				.stream()
-				.map(AdminUserMapper::toDomain)
-				.map(this::removeSenhaHash)
-				.toList();
-	}
-
-	private AdminUser removeSenhaHash(AdminUser admin) {
-		admin.setSenhaHash(null);
-		return admin;
+		return jpaRepository.findAll().stream().map(AdminUserMapper::toDomain).toList();
 	}
 }

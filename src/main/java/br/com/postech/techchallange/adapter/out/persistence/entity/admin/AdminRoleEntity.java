@@ -1,13 +1,21 @@
 package br.com.postech.techchallange.adapter.out.persistence.entity.admin;
 
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "admin_role")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,12 +23,9 @@ public class AdminRoleEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long idRole;
+	@Column(name = "id")
+	private Long id;
 
 	private String nome;
-
 	private String descricao;
-
-	@OneToMany(mappedBy = "adminRole", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<AdminUserRoleEntity> usuarios;
 }
