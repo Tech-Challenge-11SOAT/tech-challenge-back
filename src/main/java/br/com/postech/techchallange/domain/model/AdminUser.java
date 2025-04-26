@@ -16,7 +16,9 @@ public class AdminUser {
 	private Long id;
 	private String nome;
 	private String email;
+
 	private String senhaHash;
+
 	private Boolean ativo;
 	private LocalDateTime dataCriacao;
 	private List<AdminRole> roles;

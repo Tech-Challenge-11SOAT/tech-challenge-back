@@ -27,9 +27,10 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http
 				.csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/admin/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-								.anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/admin/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+	                    .requestMatchers("/admin/roles/**").hasRole("ADMIN")
+						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class)
 				.build();
 	}

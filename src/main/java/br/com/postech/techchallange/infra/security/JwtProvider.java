@@ -1,14 +1,24 @@
 package br.com.postech.techchallange.infra.security;
 
-import io.jsonwebtoken.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Component;
+
+import br.com.postech.techchallange.domain.model.AdminRole;
+import br.com.postech.techchallange.domain.model.AdminUser;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.lang.Collections;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 @Component
 public class JwtProvider {
@@ -26,10 +36,17 @@ public class JwtProvider {
 		this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
 	}
 
-	public String generateToken(Long idAdmin, String email) {
+	public String generateToken(AdminUser admin) {
+		List<String> roles = Optional.of(admin.getRoles())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(AdminRole::getNome)
+				.toList();
+		
 		return Jwts.builder()
-				.subject(email)
-				.claim("idAdmin", idAdmin)
+				.subject(admin.getEmail())
+				.claim("idAdmin", admin.getId())
+				.claim("roles", roles)
 				.issuedAt(new Date())
 				.expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
 				.signWith(key, SIGNATURE_ALGORITHM)
@@ -47,6 +64,10 @@ public class JwtProvider {
 		} catch (JwtException | IllegalArgumentException e) {
 			return false;
 		}
+	}
+
+	public Claims getClaims(String token) {
+		return this.parseClaims(token).getPayload();
 	}
 
 	private Jws<Claims> parseClaims(String token) {

@@ -1,7 +1,7 @@
 package br.com.postech.techchallange.infra.security;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,34 +32,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
+	        throws ServletException, IOException {
 
-		String requestURI = request.getRequestURI();
-		String token = this.parseToken(request);
+	    String requestURI = request.getRequestURI();
+	    String token = this.parseToken(request);
 
-		if (token == null) {
-			logger.debug("[JWT Filter] Nenhum token presente na requisição: {}", requestURI);
-		} else {
-			logger.debug("[JWT Filter] Token encontrado para requisição: {}", requestURI);
+	    if (token != null && jwtProvider.validateToken(token) && !tokenBlacklistService.isTokenBlacklisted(token)) {
+	        Claims claims = jwtProvider.getClaims(token);
+	        String email = claims.getSubject();
 
-			if (!jwtProvider.validateToken(token)) {
-				logger.warn("[JWT Filter] Token inválido para requisição: {}", requestURI);
-			} else if (tokenBlacklistService.isTokenBlacklisted(token)) {
-				logger.warn("[JWT Filter] Token na blacklist (logout realizado previamente): {}", requestURI);
-			} else {
-				String email = jwtProvider.getEmailFromToken(token);
-				logger.info("[JWT Filter] Autenticação bem-sucedida para usuário: {} - Rota: {}", email, requestURI);
+	        List<String> roles = claims.get("roles", List.class);
 
-				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
-						null, Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")));
+	        List<SimpleGrantedAuthority> authorities = roles.stream()
+	                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+	                .toList();
 
-				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-				SecurityContextHolder.getContext().setAuthentication(authentication);
-			}
-		}
+	        UsernamePasswordAuthenticationToken authentication =
+	                new UsernamePasswordAuthenticationToken(email, null, authorities);
 
-		filterChain.doFilter(request, response);
+	        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+	        logger.info("[JWT Filter] Autenticação bem-sucedida para usuário: {} com roles: {}", email, roles);
+	    }
+
+	    filterChain.doFilter(request, response);
 	}
+
 
 	private String parseToken(HttpServletRequest request) {
 		String headerAuth = request.getHeader("Authorization");
