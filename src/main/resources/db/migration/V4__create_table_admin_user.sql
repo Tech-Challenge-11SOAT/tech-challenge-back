@@ -1,0 +1,8 @@
+CREATE TABLE admin_user (
+    id_admin INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    data_criacao DATETIME NOT NULL
+);
