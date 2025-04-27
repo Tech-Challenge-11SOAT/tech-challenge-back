@@ -72,7 +72,7 @@ public class JwtProvider {
 	}
 
 	public String getEmailFromToken(String token) {
-		return parseClaims(token).getPayload().getSubject();
+		return this.parseClaims(token).getPayload().getSubject();
 	}
 
 	public boolean validateToken(String token) {
@@ -91,4 +91,12 @@ public class JwtProvider {
 	private Jws<Claims> parseClaims(String token) {
 		return Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
 	}
+	
+	public String extractToken(String bearerToken) {
+		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		throw new RuntimeException("Token inválido");
+	}
+
 }

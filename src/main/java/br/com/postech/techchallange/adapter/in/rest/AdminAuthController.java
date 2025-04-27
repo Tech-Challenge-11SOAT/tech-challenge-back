@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -108,24 +109,20 @@ public class AdminAuthController {
 		return cadastrarUseCase.cadastrar(admin);
 	}
 
-	@Operation(
-			summary = "Alterar senha do administrador",
-			description = "Permite que o administrador altere sua senha informando a senha atual e a nova senha."
-		)
-		@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Senha alterada com sucesso."),
-			@ApiResponse(responseCode = "400", description = "Senha atual incorreta ou erro de validação."),
-			@ApiResponse(responseCode = "403", description = "Token inválido ou expirado."),
-			@ApiResponse(responseCode = "500", description = "Erro interno no servidor.")
-		})
-		@SecurityRequirement(name = "bearerAuth")
-		@PostMapping("/change-password")
-	public void changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-		String email = jwtProvider.getCurrentUserEmail();
-		this.alterarSenhaUseCase.alterarSenha(email, request.getCurrentPassword(), request.getNewPassword());
+	@PostMapping("/change-password")
+	@Operation(summary = "Alterar senha do administrador autenticado")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "Senha alterada com sucesso."),
+			@ApiResponse(responseCode = "400", description = "Senha atual incorreta ou requisição inválida."),
+			@ApiResponse(responseCode = "403", description = "Token inválido ou expirado.")
+	})
+	public void changePassword(@RequestBody @Valid ChangePasswordRequest request, HttpServletRequest servletRequest) {
+		String token = this.extractToken(servletRequest);
+		String email = jwtProvider.getEmailFromToken(token);
+
+		alterarSenhaUseCase.alterarSenha(email, request.getCurrentPassword(), request.getNewPassword());
 	}
 
-	
 	@PostMapping("/logout")
 	@Operation(
 			summary = "Realizar logout",
@@ -138,5 +135,13 @@ public class AdminAuthController {
 		})
 	public void logout(@RequestBody RefreshTokenRequest request) {
 		tokenBlacklistService.blacklistToken(request.refreshToken());
+	}
+	
+	private String extractToken(HttpServletRequest request) {
+		String header = request.getHeader("Authorization");
+		if (header == null || !header.startsWith("Bearer ")) {
+			throw new BusinessException("Token inválido ou não informado.");
+		}
+		return header.substring(7);
 	}
 }
