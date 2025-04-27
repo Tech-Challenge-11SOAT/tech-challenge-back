@@ -1,6 +1,6 @@
 CREATE TABLE admin_log_acao (
     id_log INT AUTO_INCREMENT PRIMARY KEY,
-    id_admin INT NOT NULL,
+    id_admin BIGINT NOT NULL,
     acao VARCHAR(255) NOT NULL,
     recurso_afetado VARCHAR(100) NOT NULL,
     id_recurso INT NOT NULL,

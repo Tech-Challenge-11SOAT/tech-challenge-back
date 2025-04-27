@@ -1,5 +1,5 @@
 CREATE TABLE admin_user_role (
-    id_admin INT NOT NULL,
+    id_admin BIGINT NOT NULL,
     id_role BIGINT NOT NULL,
     PRIMARY KEY (id_admin, id_role),
     CONSTRAINT admin_user_role_admin_fk FOREIGN KEY (id_admin) REFERENCES admin_user(id_admin),
