@@ -23,7 +23,6 @@ public class AdminUserRepositoryAdapter implements AdminUserRepositoryPort {
 	@Transactional
 	public AdminUser salvar(AdminUser admin) {
 		AdminUserEntity entity = AdminUserMapper.toEntity(admin);
-		System.out.println(entity.toString());
 
 		AdminUserEntity saved = jpaRepository.save(entity);
 
