@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/status-pedidos")
+@RequestMapping("/open/status-pedidos")
 @Tag(name = "Status de Pedido", description = "Operações relacionadas ao status do pedido")
 public class StatusPedidoController {
 
