@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pagamentos")
+@RequestMapping("/open/pagamentos")
 @Tag(name = "Pagamentos", description = "Operações de pagamento")
 public class PagamentoController {
 

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
-@RequestMapping("/status-pagamento")
+@RequestMapping("/open/status-pagamento")
 @Tag(name = "Status Pagamento", description = "Operações de status de pagamento")
 public class StatusPagamentoController {
 

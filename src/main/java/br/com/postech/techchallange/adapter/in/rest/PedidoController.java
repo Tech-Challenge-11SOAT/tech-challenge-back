@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pedidos")
+@RequestMapping("/open/pedidos")
 @Tag(name = "Pedidos", description = "Operações relacionadas aos pedidos")
 public class PedidoController {
 

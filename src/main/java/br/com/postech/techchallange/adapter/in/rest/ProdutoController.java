@@ -5,7 +5,7 @@ import br.com.postech.techchallange.domain.port.in.BuscarProdutoUseCase;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/produtos")
+@RequestMapping("/open/produtos")
 public class ProdutoController {
 
 	private final BuscarProdutoUseCase buscarProdutoUseCase;
