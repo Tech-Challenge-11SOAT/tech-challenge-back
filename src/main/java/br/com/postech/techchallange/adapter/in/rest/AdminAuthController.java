@@ -1,7 +1,5 @@
 package br.com.postech.techchallange.adapter.in.rest;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +11,6 @@ import br.com.postech.techchallange.adapter.in.rest.request.LoginRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.RefreshTokenRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.TokenResponse;
 import br.com.postech.techchallange.domain.exception.BusinessException;
-import br.com.postech.techchallange.domain.model.AdminRole;
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.AlterarSenhaAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
@@ -96,17 +93,7 @@ public class AdminAuthController {
 			@ApiResponse(responseCode = "400", description = "Erro de validação no cadastro.")
 		})
 	public AdminUser register(@RequestBody @Valid AdminRegisterRequest request) {
-		AdminUser admin = new AdminUser();
-		admin.setNome(request.getNome());
-		admin.setEmail(request.getEmail());
-		admin.setSenhaHash(request.getSenha());
-
-		List<AdminRole> roles = adminRoleRepository.listarTodos().stream()
-				.filter(role -> request.getRolesIds().contains(role.getId())).toList();
-
-		admin.setRoles(roles);
-
-		return cadastrarUseCase.cadastrar(admin);
+		return cadastrarUseCase.cadastrar(request);
 	}
 
 	@PostMapping("/change-password")

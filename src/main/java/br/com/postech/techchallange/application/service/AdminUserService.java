@@ -6,8 +6,10 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.postech.techchallange.adapter.in.rest.request.AdminRegisterRequest;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminLogAcao;
+import br.com.postech.techchallange.domain.model.AdminRole;
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
@@ -26,11 +28,20 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 	private final AdminUserRepositoryPort userRepository;
 	private final AdminLogAcaoRepositoryPort logRepository;
 	private final PasswordEncoder passwordEncoder;
-	private final AdminRoleRepositoryPort roleRepository;
+	private final AdminRoleRepositoryPort adminRoleRepository;
 	private final TokenBlacklistService tokenBlacklistService;
 
 	@Override
-	public AdminUser cadastrar(AdminUser admin) {
+	public AdminUser cadastrar(AdminRegisterRequest request) {
+		AdminUser admin = new AdminUser();
+		admin.setNome(request.getNome());
+		admin.setEmail(request.getEmail());
+		admin.setSenhaHash(request.getSenha());
+
+		List<AdminRole> roles = this.getAdminRolesFiltered(request);
+
+		admin.setRoles(roles);
+		
 		if (admin.getRoles() == null || admin.getRoles().isEmpty()) {
 			throw new BusinessException("Um administrador precisa ter pelo menos uma role.");
 		}
@@ -42,7 +53,7 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 		AdminUser adminSalvo = userRepository.salvar(admin);
 		
 		admin.getRoles().forEach(role -> {
-			roleRepository.atribuirRole(adminSalvo.getId(), role.getId());
+			adminRoleRepository.atribuirRole(adminSalvo.getId(), role.getId());
 		});
 
 		// Registrar log de cadastro
@@ -68,7 +79,7 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 			throw new BusinessException("Usuário ou senha inválidos");
 		}
 
-		admin.setRoles(roleRepository.listarRolesPorAdminId(admin.getId()));
+		admin.setRoles(adminRoleRepository.listarRolesPorAdminId(admin.getId()));
 
 		return admin;
 	}
@@ -96,5 +107,13 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 		return userRepository.listar().stream()
 				.map(AdminUser::semSenha)
 				.toList();
+	}
+	
+	private List<AdminRole> getAdminRolesFiltered(AdminRegisterRequest request) {
+		List<AdminRole> roles = adminRoleRepository.listarTodos().stream()
+				.filter(role -> request.getRolesIds()
+				.contains(role.getId()))
+				.toList();
+		return roles;
 	}
 }
