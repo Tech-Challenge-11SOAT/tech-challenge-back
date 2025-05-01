@@ -16,7 +16,6 @@ import br.com.postech.techchallange.domain.port.in.AlterarSenhaAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.AutenticarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.CadastrarAdminUseCase;
 import br.com.postech.techchallange.domain.port.in.ConsultarAdminUseCase;
-import br.com.postech.techchallange.domain.port.out.AdminRoleRepositoryPort;
 import br.com.postech.techchallange.infra.security.JwtProvider;
 import br.com.postech.techchallange.infra.security.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +36,6 @@ public class AdminAuthController {
 	private final AutenticarAdminUseCase autenticarUseCase;
 	private final CadastrarAdminUseCase cadastrarUseCase;
 	private final TokenBlacklistService tokenBlacklistService;
-	private final AdminRoleRepositoryPort adminRoleRepository;
 	private final ConsultarAdminUseCase consultarUseCase;
 	private final AlterarSenhaAdminUseCase alterarSenhaUseCase;
 	private final JwtProvider jwtProvider;
