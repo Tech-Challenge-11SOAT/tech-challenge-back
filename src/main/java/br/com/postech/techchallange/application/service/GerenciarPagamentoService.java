@@ -12,6 +12,7 @@ import br.com.postech.techchallange.domain.port.in.GerenciarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
+import br.com.postech.techchallange.infra.cache.RedisService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,6 +22,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 	private final PagamentoRepositoryPort repository;
 	private final MercadoPagoPort mercadoPagoPort;
 	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamentoUseCase;
+	private final RedisService redisService;
 
 	@Override
 	public Pagamento pagar(Pagamento pagamento) {
@@ -35,6 +37,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 		Pagamento salvo = repository.salvar(pagamento);
 
 		String qrCode = mercadoPagoPort.gerarQRCode(salvo);
+		redisService.salvarQRCode(pagamento.getId(), qrCode);
 
 		return salvo;
 	}
