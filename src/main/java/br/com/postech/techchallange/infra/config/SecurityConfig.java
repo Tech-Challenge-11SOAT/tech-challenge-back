@@ -28,7 +28,7 @@ public class SecurityConfig {
 		return http
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+						.requestMatchers("/admin/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/open/**").permitAll()
 	                    .requestMatchers("/admin/roles/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class)
