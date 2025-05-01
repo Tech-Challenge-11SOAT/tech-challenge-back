@@ -23,7 +23,7 @@ public class PagamentoController {
 	@PostMapping
 	@Operation(summary = "Criar pagamento")
 	public Pagamento criar(@RequestBody @Valid Pagamento pagamento) {
-		return pagamentoUseCase.criarPagamento(pagamento);
+		return pagamentoUseCase.pagar(pagamento);
 	}
 
 	@GetMapping("/{id}")
