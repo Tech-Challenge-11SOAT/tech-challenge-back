@@ -3,15 +3,12 @@ package br.com.postech.techchallange.adapter.in.rest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,25 +36,12 @@ class AdminAuthControllerIntegrationTest {
 	private AdminUserRepositoryPort adminUserRepository;
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
-
-	@Autowired
 	private ObjectMapper objectMapper;
 
 	private String token;
 
 	@BeforeEach
 	void setup() {
-		AdminUser admin = adminUserRepository.buscarPorEmail("admin@example.com").orElseGet(() -> {
-			AdminUser novoAdmin = new AdminUser();
-			novoAdmin.setNome("Admin Teste");
-			novoAdmin.setEmail("admin@example.com");
-			novoAdmin.setSenhaHash(passwordEncoder.encode("senhaAtual"));
-			novoAdmin.setAtivo(true);
-			novoAdmin.setDataCriacao(LocalDateTime.now());
-			return adminUserRepository.salvar(novoAdmin);
-		});
-
 		AdminUser adminSalvo = adminUserRepository.buscarPorEmail("admin@example.com")
 				.orElseThrow(() -> new RuntimeException("Admin de teste não encontrado"));
 
