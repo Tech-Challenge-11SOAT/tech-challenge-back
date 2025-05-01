@@ -7,12 +7,11 @@ import org.springframework.stereotype.Service;
 
 import br.com.postech.techchallange.domain.enums.StatusPagamentoEnum;
 import br.com.postech.techchallange.domain.model.Pagamento;
-import br.com.postech.techchallange.domain.model.StatusPagamento;
 import br.com.postech.techchallange.domain.port.in.GerenciarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
+import br.com.postech.techchallange.domain.port.in.ProcessarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
-import br.com.postech.techchallange.infra.cache.RedisService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,23 +20,22 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
 	private final PagamentoRepositoryPort repository;
 	private final MercadoPagoPort mercadoPagoPort;
-	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamentoUseCase;
-	private final RedisService redisService;
+	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
+	private final ProcessarPagamentoUseCase processarPagamento;
 
 	@Override
 	public Pagamento pagar(Pagamento pagamento) {
 		pagamento.setDataPagamento(LocalDateTime.now());
-		long idStatusPendente = this.gerenciarStatusPagamentoUseCase.listarStatusPagamentos().stream()
-				.filter(status -> StatusPagamentoEnum.PENDENTE.name().equals(status.getNomeStatus().getStatus()))
-				.mapToLong(StatusPagamento::getIdStatusPagamento).findFirst()
-				.orElseThrow(() -> new IllegalStateException("Status PENDENTE não encontrado"));
-		
+		long idStatusPendente = this.gerenciarStatusPagamento
+				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
+				.getIdStatusPagamento();
+
 		pagamento.setIdStatusPagamento(idStatusPendente);
 
 		Pagamento salvo = repository.salvar(pagamento);
 
 		String qrCode = mercadoPagoPort.gerarQRCode(salvo);
-		redisService.salvarQRCode(pagamento.getId(), qrCode);
+		processarPagamento.salvarQRCode(pagamento.getId().toString(), qrCode);
 
 		return salvo;
 	}

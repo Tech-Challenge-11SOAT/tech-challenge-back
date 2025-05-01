@@ -6,6 +6,8 @@ import br.com.postech.techchallange.domain.model.StatusPagamento;
 
 public interface GerenciarStatusPagamentoUseCase {
 	StatusPagamento buscarStatusPagamento(Long id);
+	
+	StatusPagamento buscarStatusPagamentoPorStatus(String status);
 
 	List<StatusPagamento> listarStatusPagamentos();
 }

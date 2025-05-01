@@ -9,6 +9,7 @@ import br.com.postech.techchallange.adapter.out.persistence.mapper.StatusPagamen
 import br.com.postech.techchallange.adapter.out.persistence.repository.StatusPagamentoJpaRepository;
 import br.com.postech.techchallange.domain.model.StatusPagamento;
 import br.com.postech.techchallange.domain.port.out.StatusPagamentoRepositoryPort;
+import jakarta.persistence.EntityNotFoundException;
 
 @Component
 public class StatusPagamentoRepositoryAdapter implements StatusPagamentoRepositoryPort {
@@ -22,6 +23,12 @@ public class StatusPagamentoRepositoryAdapter implements StatusPagamentoReposito
 	@Override
 	public Optional<StatusPagamento> buscarPorId(Long id) {
 		return repository.findById(id).map(StatusPagamentoMapper::toDomain);
+	}
+
+	@Override
+	public StatusPagamento buscarStatusPagamentoPorStatus(String statusParam) {
+		return repository.findByNomeStatusIgnoreCase(statusParam)
+				.orElseThrow(() -> new EntityNotFoundException("Status não encontrado: " + statusParam));
 	}
 
 	@Override

@@ -17,11 +17,16 @@ public class GerenciarStatusPagamentoService implements GerenciarStatusPagamento
 
 	@Override
 	public StatusPagamento buscarStatusPagamento(Long id) {
-		return repository.buscarPorId(id).orElse(null);
+		return this.repository.buscarPorId(id).orElse(null);
+	}
+
+	@Override
+	public StatusPagamento buscarStatusPagamentoPorStatus(String status) {
+		return this.repository.buscarStatusPagamentoPorStatus(status);
 	}
 
 	@Override
 	public List<StatusPagamento> listarStatusPagamentos() {
-		return repository.listarTodos();
+		return this.repository.listarTodos();
 	}
 }
