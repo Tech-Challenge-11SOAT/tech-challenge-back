@@ -35,7 +35,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 		Pagamento salvo = repository.salvar(pagamento);
 
 		String qrCode = mercadoPagoPort.gerarQRCode(salvo);
-		processarPagamento.salvarQRCode(pagamento.getId().toString(), qrCode);
+		processarPagamento.salvarQRCode(salvo.getId().toString(), qrCode);
 
 		return salvo;
 	}

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.postech.techchallange.adapter.in.rest.response.ErrorResponse;
 import br.com.postech.techchallange.domain.exception.BusinessException;
+import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,6 +37,15 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse(
 				HttpStatus.INTERNAL_SERVER_ERROR.value(),
 				"Erro Interno",
+				ex.getMessage());
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	}
+	
+	@ExceptionHandler(EntityNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
+		ErrorResponse errorResponse = new ErrorResponse(
+				HttpStatus.NOT_FOUND.value(),
+				"Recurso não localizado.",
 				ex.getMessage());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 	}

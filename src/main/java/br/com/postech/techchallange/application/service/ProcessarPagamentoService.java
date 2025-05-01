@@ -1,9 +1,11 @@
 package br.com.postech.techchallange.application.service;
 
+import org.springframework.stereotype.Service;
+
 import br.com.postech.techchallange.domain.port.in.ProcessarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.out.RedisPort;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,6 @@ public class ProcessarPagamentoService implements ProcessarPagamentoUseCase {
 	@Override
 	public String obterQRCode(String idPedido) {
 		return redisQrcodeService.obter(idPedido)
-				.orElseThrow(() -> new RuntimeException("QRCode não encontrado"));
+				.orElseThrow(() -> new EntityNotFoundException("QRCode não encontrado"));
 	}
 }
