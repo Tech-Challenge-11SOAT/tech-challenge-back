@@ -1,45 +1,44 @@
-	package br.com.postech.techchallange.adapter.out.integration;
+package br.com.postech.techchallange.adapter.out.integration;
 
-	import java.util.Collections;
+import java.util.Collections;
 
-	import org.springframework.beans.factory.annotation.Value;
-	import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component;
 
-	import com.mercadopago.MercadoPagoConfig;
-	import com.mercadopago.client.preference.PreferenceClient;
-	import com.mercadopago.client.preference.PreferenceItemRequest;
-	import com.mercadopago.client.preference.PreferenceRequest;
-	import com.mercadopago.exceptions.MPApiException;
-	import com.mercadopago.exceptions.MPException;
-	import com.mercadopago.resources.preference.Preference;
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
 
-	import br.com.postech.techchallange.domain.model.Pagamento;
-	import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
-	import lombok.RequiredArgsConstructor;
+import br.com.postech.techchallange.domain.model.Pagamento;
+import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
+import br.com.postech.techchallange.infra.config.IntegracaoMercadoPagoConfig;
 
-	@Component
-	@RequiredArgsConstructor
-	public class MercadoPagoAdapter implements MercadoPagoPort {
+@Component
+public class MercadoPagoAdapter implements MercadoPagoPort {
 
-	@Value("${mercadopago.access-token}")
-	private String accessToken;
+    private final IntegracaoMercadoPagoConfig config;
+
+    public MercadoPagoAdapter(IntegracaoMercadoPagoConfig config) {
+        this.config = config;
+        System.out.println("Configurações carregadas: " + config);
+    }
 
 	@Override
 	public String gerarQRCode(Pagamento pagamento) {
 		try {
-			MercadoPagoConfig.setAccessToken(accessToken);
+			MercadoPagoConfig.setAccessToken(config.accessToken());
 
-			PreferenceItemRequest item =
-				PreferenceItemRequest.builder()
+			PreferenceItemRequest item = PreferenceItemRequest.builder()
 					.title("Pagamento Pedido #" + pagamento.getIdPedido())
 					.quantity(1)
-					.unitPrice(pagamento.getValorTotal())
-					.currencyId("BRL")
+					.unitPrice(pagamento.getValorTotal()).currencyId("BRL")
 					.build();
 
 			PreferenceClient client = new PreferenceClient();
-			PreferenceRequest request =
-				PreferenceRequest.builder()
+			PreferenceRequest request = PreferenceRequest.builder()
 					.items(Collections.singletonList(item))
 					.externalReference(pagamento.getIdPedido().toString())
 					.build();
@@ -52,4 +51,4 @@
 			throw new RuntimeException("Erro ao gerar QR Code no Mercado Pago: " + e.getMessage(), e);
 		}
 	}
-	}
+}
