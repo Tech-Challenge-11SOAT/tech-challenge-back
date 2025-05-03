@@ -51,4 +51,9 @@ public class MercadoPagoAdapter implements MercadoPagoPort {
 			throw new RuntimeException("Erro ao gerar QR Code no Mercado Pago: " + e.getMessage(), e);
 		}
 	}
+
+	@Override
+	public String criarPreferenciaPagamento(Pagamento pagamento) {
+		return null;
+	}
 }

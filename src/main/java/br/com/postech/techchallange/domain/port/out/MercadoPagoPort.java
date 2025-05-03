@@ -4,4 +4,6 @@ import br.com.postech.techchallange.domain.model.Pagamento;
 
 public interface MercadoPagoPort {
 	String gerarQRCode(Pagamento pagamento);
+    String criarPreferenciaPagamento(Pagamento pagamento);
+
 }

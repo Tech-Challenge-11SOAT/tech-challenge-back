@@ -13,6 +13,7 @@ public class PagamentoMapper {
 				.metodoPagamento(entity.getMetodoPagamento())
 				.idStatusPagamento(entity.getIdStatusPagamento())
 				.dataPagamento(entity.getDataPagamento())
+				.initPoint(entity.getInitPoint())
 				.build();
 	}
 
@@ -24,6 +25,7 @@ public class PagamentoMapper {
 				.metodoPagamento(domain.getMetodoPagamento())
 				.idStatusPagamento(domain.getIdStatusPagamento())
 				.dataPagamento(domain.getDataPagamento())
+				.initPoint(domain.getInitPoint())
 				.build();
 	}
 }

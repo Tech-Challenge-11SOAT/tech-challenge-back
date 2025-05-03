@@ -30,8 +30,8 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
 	@Override
 	public Pagamento pagar(Pagamento pagamento) {
-        Pedido pedido = this.gerenciarPedidoUseCase.buscarPedido(pagamento.getIdPedido());
-        this.pagamentoValidator.validar(pedido, pagamento);
+		Pedido pedido = this.gerenciarPedidoUseCase.buscarPedido(pagamento.getIdPedido());
+		this.pagamentoValidator.validar(pedido, pagamento);
 		
 		pagamento.setDataPagamento(LocalDateTime.now());
 		long idStatusPendente = this.gerenciarStatusPagamento
@@ -40,10 +40,10 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
 		pagamento.setIdStatusPagamento(idStatusPendente);
 
-		Pagamento salvo = repository.salvar(pagamento);
+		Pagamento salvo = this.repository.salvar(pagamento);
 
-		String qrCode = mercadoPagoPort.gerarQRCode(salvo);
-		processarPagamento.salvarQRCode(salvo.getId().toString(), qrCode);
+		String qrCode = this.mercadoPagoPort.gerarQRCode(salvo);
+		this.processarPagamento.salvarQRCode(salvo.getId().toString(), qrCode);
 
 		return salvo;
 	}

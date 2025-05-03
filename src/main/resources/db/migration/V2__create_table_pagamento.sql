@@ -5,5 +5,6 @@ CREATE TABLE pagamento (
     metodo_pagamento VARCHAR(100) NOT NULL,
     id_status_pagamento BIGINT NOT NULL,
     data_pagamento DATETIME NOT NULL,
+    init_point VARCHAR(255),
     CONSTRAINT PagamentoPedidoFK FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido)
 );

@@ -14,4 +14,14 @@ public class PedidoProdutoMapper {
 				entity.getPrecoUnitario(
 		));
 	}
+
+	public static PedidoProdutoEntity toEntity(PedidoProduto pedidoProduto) {
+		return new PedidoProdutoEntity(
+				pedidoProduto.getId(),
+				pedidoProduto.getIdPedido(),
+				pedidoProduto.getIdProduto(),
+				pedidoProduto.getQuantidade(),
+				pedidoProduto.getPrecoUnitario()
+		);
+	}
 }
