@@ -1,68 +1,55 @@
-package br.com.postech.techchallange.adapter.out.integration;
+	package br.com.postech.techchallange.adapter.out.integration;
 
-import br.com.postech.techchallange.adapter.out.integration.dto.QRCodeRequest;
-import br.com.postech.techchallange.adapter.out.integration.dto.QRCodeRequest.Item;
-import br.com.postech.techchallange.adapter.out.integration.dto.QRCodeResponse;
-import br.com.postech.techchallange.domain.model.Pagamento;
-import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+	import java.util.Collections;
 
-import java.util.Collections;
+	import org.springframework.beans.factory.annotation.Value;
+	import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class MercadoPagoAdapter implements MercadoPagoPort {
+	import com.mercadopago.MercadoPagoConfig;
+	import com.mercadopago.client.preference.PreferenceClient;
+	import com.mercadopago.client.preference.PreferenceItemRequest;
+	import com.mercadopago.client.preference.PreferenceRequest;
+	import com.mercadopago.exceptions.MPApiException;
+	import com.mercadopago.exceptions.MPException;
+	import com.mercadopago.resources.preference.Preference;
 
-	private final MercadoPagoFeignClient mercadoPagoFeignClient;
+	import br.com.postech.techchallange.domain.model.Pagamento;
+	import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
+	import lombok.RequiredArgsConstructor;
 
-	@Value("${mercado.pago.access.token}")
+	@Component
+	@RequiredArgsConstructor
+	public class MercadoPagoAdapter implements MercadoPagoPort {
+
+	@Value("${mercadopago.access-token}")
 	private String accessToken;
-
-	@Value("${mercado.pago.user.id}")
-	private String userId;
-
-	@Value("${mercado.pago.external.pos.id}")
-	private String externalPosId;
-
-	@Value("${mercado.pago.notification.url}")
-	private String notificationUrl;
 
 	@Override
 	public String gerarQRCode(Pagamento pagamento) {
-		Item item = Item.builder()
-				.sku_number("SKU123")
-				.category("services")
-				.title("Pagamento Pedido #" + pagamento.getIdPedido())
-				.description("Pagamento referente ao pedido #" + pagamento.getIdPedido())
-				.unit_measure("unit")
-				.quantity(1)
-				.currency_id("BRL")
-				.unit_price(pagamento.getValorTotal())
-				.total_amount(pagamento.getValorTotal())
-				.build();
+		try {
+			MercadoPagoConfig.setAccessToken(accessToken);
 
-		QRCodeRequest request = QRCodeRequest.builder()
-				.external_reference("pedido_" + pagamento.getIdPedido())
-				.title("Pagamento Pedido #" + pagamento.getIdPedido())
-				.description("Pagamento via QR Code")
-				.total_amount(pagamento.getValorTotal())
-				.items(Collections.singletonList(item))
-				.notification_url(notificationUrl)
-				.build();
+			PreferenceItemRequest item =
+				PreferenceItemRequest.builder()
+					.title("Pagamento Pedido #" + pagamento.getIdPedido())
+					.quantity(1)
+					.unitPrice(pagamento.getValorTotal())
+					.currencyId("BRL")
+					.build();
 
-		QRCodeResponse response = mercadoPagoFeignClient.gerarQRCode(
-				this.getAuthorization(accessToken),
-				userId,
-				externalPosId,
-				request
-			);
+			PreferenceClient client = new PreferenceClient();
+			PreferenceRequest request =
+				PreferenceRequest.builder()
+					.items(Collections.singletonList(item))
+					.externalReference(pagamento.getIdPedido().toString())
+					.build();
 
-		return response.getQr_data();
+			Preference preference = client.create(request);
+
+			return preference.getInitPoint();
+
+		} catch (MPApiException | MPException e) {
+			throw new RuntimeException("Erro ao gerar QR Code no Mercado Pago: " + e.getMessage(), e);
+		}
 	}
-	
-	private String getAuthorization(String accessToken) {
-		return "Bearer " + accessToken;
 	}
-}
