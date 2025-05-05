@@ -12,6 +12,7 @@ import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 
+import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.Pagamento;
 import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.infra.config.IntegracaoMercadoPagoConfig;
@@ -53,7 +54,30 @@ public class MercadoPagoAdapter implements MercadoPagoPort {
 	}
 
 	@Override
-	public String criarPreferenciaPagamento(Pagamento pagamento) {
-		return null;
+	public Pagamento criarPreferenciaPagamento(Pagamento pagamento) {
+		try {
+			PreferenceClient client = new PreferenceClient();
+
+			ItemRequest item = ItemRequest.builder().
+					title("Pedido #" + pagamento.getIdPedido())
+					.quantity(1)
+					.unitPrice(pagamento.getValorTotal()).currencyId("BRL")
+					.build();
+
+			PreferenceRequest preferenceRequest = PreferenceRequest.builder().items(Collections.singletonList(item))
+					.notificationUrl(config.notificationUrl())
+					.externalReference(String.valueOf(pagamento.getIdPedido())).build();
+
+			Preference preference = client.create(preferenceRequest,
+					RequestOptions.builder().accessToken(config.accessToken()).build());
+
+			pagamento.setInitPoint(preference.getInitPoint());
+
+			return pagamento;
+
+		} catch (MPApiException | MPException e) {
+			throw new BusinessException("Erro ao integrar com Mercado Pago: " + e.getMessage());
+		}
 	}
+
 }

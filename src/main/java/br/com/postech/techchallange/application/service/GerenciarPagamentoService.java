@@ -12,7 +12,6 @@ import br.com.postech.techchallange.domain.port.in.GerenciarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.PagamentoValidatorPort;
-import br.com.postech.techchallange.domain.port.in.ProcessarPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 	private final PagamentoRepositoryPort repository;
 	private final MercadoPagoPort mercadoPagoPort;
 	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
-	private final ProcessarPagamentoUseCase processarPagamento;
 	private final GerenciarPedidoUseCase gerenciarPedidoUseCase;
 	private final PagamentoValidatorPort pagamentoValidator;
 
@@ -42,8 +40,9 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
 		Pagamento salvo = this.repository.salvar(pagamento);
 
-		String qrCode = this.mercadoPagoPort.gerarQRCode(salvo);
-		this.processarPagamento.salvarQRCode(salvo.getId().toString(), qrCode);
+		Pagamento preferenciaCriada = mercadoPagoPort.criarPreferenciaPagamento(salvo);
+		salvo.setInitPoint(preferenciaCriada.getInitPoint());
+		repository.salvar(salvo);
 
 		return salvo;
 	}
