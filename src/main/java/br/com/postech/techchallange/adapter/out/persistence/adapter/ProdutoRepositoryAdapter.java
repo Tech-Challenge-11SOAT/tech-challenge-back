@@ -20,8 +20,10 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 	private final ProdutoJpaRepository produtoRepository;
 
 	@Override
-	public ProdutoEntity salvar(Produto produto) {
-		return this.produtoRepository.save(ProdutoMapper.toEntity(produto));
+	public Produto salvar(Produto produto) {
+		ProdutoEntity entity = ProdutoMapper.toEntity(produto);
+		ProdutoEntity savedEntity = produtoRepository.save(entity);
+		return ProdutoMapper.toDomain(savedEntity);
 	}
 
 	@Override
@@ -53,6 +55,5 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 				.map(ProdutoMapper::toDomain)
 				.toList();
 	}
-	
-	
+
 }

@@ -57,7 +57,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 		final Pedido finalPedido = pedido;
 
 		List<PedidoProduto> itens = request.getProdutos().stream().map(prod -> {
-			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto());
+			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto()).get();
 			if (Objects.isNull(produto)) {
 				throw new EntityNotFoundException("Produto não encontrado");
 			}
@@ -89,14 +89,14 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 				.build();
 
 		pagamento = this.pagamentoRepository.salvar(pagamento);
-		String initPoint = this.mercadoPagoPort.criarPreferenciaPagamento(pagamento);
+		var initPoint = this.mercadoPagoPort.criarPreferenciaPagamento(pagamento);
 
 		return PedidoPagamentoResponse.builder()
 				.idPedido(pedido.getId())
 				.idPagamento(pagamento.getId())
 				.metodoPagamento(pagamento.getMetodoPagamento())
 				.status(StatusPagamentoEnum.PENDENTE.getStatus())
-				.initPoint(initPoint)
+				.initPoint(initPoint.getInitPoint())
 				.build();
 	}
 }
