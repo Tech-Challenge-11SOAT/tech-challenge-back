@@ -1,10 +1,12 @@
 package br.com.postech.techchallange.application.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.Produto;
 import br.com.postech.techchallange.domain.port.in.ProdutoUseCase;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
@@ -52,6 +54,11 @@ public class ProdutoService implements ProdutoUseCase {
 
 	@Override
 	public List<Produto> buscarPorCategoria(Long idCategoria) {
-		return this.repository.buscarPorCategoria(idCategoria);
+		var prods = this.repository.buscarPorCategoria(idCategoria);
+		if (Objects.isNull(prods) || prods.isEmpty()) {
+			throw new BusinessException(String.format("Nenhum produto para categoria %s foi encontrado", idCategoria));
+		}
+		
+		return prods;
 	}
 }
