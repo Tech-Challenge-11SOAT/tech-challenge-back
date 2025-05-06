@@ -61,7 +61,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 			if (Objects.isNull(produto)) {
 				throw new EntityNotFoundException("Produto não encontrado");
 			}
-			
+
 			return new PedidoProduto(
 					null,
 					finalPedido.getId(),
@@ -85,7 +85,8 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 		Pagamento pagamento = Pagamento.builder()
 				.idPedido(pedido.getId())
 				.metodoPagamento(request.getMetodoPagamento())
-				.valorTotal(total).dataPagamento(LocalDateTime.now())
+				.valorTotal(total)
+				.dataPagamento(LocalDateTime.now())
 				.idStatusPagamento(idStatusPagamento)
 				.build();
 
