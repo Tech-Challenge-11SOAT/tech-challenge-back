@@ -27,7 +27,7 @@ public class StatusPagamentoRepositoryAdapter implements StatusPagamentoReposito
 
 	@Override
 	public StatusPagamento buscarStatusPagamentoPorStatus(String statusParam) {
-		return repository.findByNomeStatus(statusParam)
+		return repository.findByNomeStatusIgnoreCase(statusParam)
 				.map(StatusPagamentoMapper::toDomain)
 				.orElseThrow(() -> new EntityNotFoundException("Status de pagamento não encontrado: " + statusParam));
 	}

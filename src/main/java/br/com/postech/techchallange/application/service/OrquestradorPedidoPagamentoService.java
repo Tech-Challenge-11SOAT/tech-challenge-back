@@ -78,8 +78,9 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 				.map(i -> i.getPrecoUnitario().multiply(java.math.BigDecimal.valueOf(i.getQuantidade())))
 				.reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
 
-		Long idStatusPagamento = gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus()).getIdStatusPagamento();
+		Long idStatusPagamento = this.gerenciarStatusPagamento
+				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
+				.getIdStatusPagamento();
 
 		Pagamento pagamento = Pagamento.builder()
 				.idPedido(pedido.getId())
