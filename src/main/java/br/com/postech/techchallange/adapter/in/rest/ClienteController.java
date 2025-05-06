@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,8 +38,12 @@ public class ClienteController {
 			@ApiResponse(responseCode = "400", description = "Dados inválidos ou faltantes", content = @Content)
 		})
 	@PostMapping
-	public Cliente cadastrar(
-			@Valid @RequestBody(description = "Dados do cliente a ser cadastrado", required = true, content = @Content(schema = @Schema(implementation = Cliente.class), examples = @ExampleObject(name = "Exemplo de Cliente", value = "{ \"nomeCliente\": \"João da Silva\", \"emailCliente\": \"joao@email.com\", \"cpfCliente\": \"12345678901\" }"))) Cliente cliente) {
+	public Cliente cadastrar(@Valid
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados do cliente a ser cadastrado",
+			required = true,
+			content = @Content(schema = @Schema(implementation = Cliente.class),
+			examples = @ExampleObject(name = "Exemplo de Cliente", value = "{ \"nomeCliente\": \"João da Silva\", \"emailCliente\": \"joao@email.com\", \"cpfCliente\": \"12345678901\" }")))
+			@RequestBody Cliente cliente) {
 		return clienteUseCase.cadastrarCliente(cliente);
 	}
 

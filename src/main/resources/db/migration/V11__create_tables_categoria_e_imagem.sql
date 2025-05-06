@@ -1,0 +1,9 @@
+CREATE TABLE categoria (
+    id_categoria BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE imagem_url (
+    id_imagem_url BIGINT AUTO_INCREMENT PRIMARY KEY,
+    imagem VARCHAR(255) NOT NULL
+);

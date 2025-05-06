@@ -1,0 +1,22 @@
+{"properties": [
+  {
+    "name": "mercado.pago.access.token",
+    "type": "java.lang.String",
+    "description": "A description for 'mercado.pago.access.token'"
+  },
+  {
+    "name": "mercado.pago.external.pos.id",
+    "type": "java.lang.String",
+    "description": "A description for 'mercado.pago.external.pos.id'"
+  },
+  {
+    "name": "mercado.pago.user.id",
+    "type": "java.lang.String",
+    "description": "A description for 'mercado.pago.user.id'"
+  },
+  {
+    "name": "mercado.pago.notification.url",
+    "type": "java.lang.String",
+    "description": "A description for 'mercado.pago.notification.url'"
+  }
+]}

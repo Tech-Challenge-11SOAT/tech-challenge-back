@@ -36,7 +36,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String requestURI = request.getRequestURI();
 		logger.info("[JWT Filter] Nova requisição recebida: {}", requestURI);
 
-		String token = parseToken(request);
+		String token = this.parseToken(request);
+		
+		if (requestURI.contains("/open")) {
+			logger.info("Endpoint não necessita de autorização, continuando...");
+			filterChain.doFilter(request, response);
+			return;
+		}
 
 		try {
 			if (token == null) {

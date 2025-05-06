@@ -21,4 +21,5 @@ public class PagamentoEntity {
 	private String metodoPagamento;
 	private Long idStatusPagamento;
 	private LocalDateTime dataPagamento;
+	private String initPoint;
 }
