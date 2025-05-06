@@ -9,32 +9,32 @@ import br.com.postech.techchallange.adapter.out.persistence.mapper.StatusPagamen
 import br.com.postech.techchallange.adapter.out.persistence.repository.StatusPagamentoJpaRepository;
 import br.com.postech.techchallange.domain.model.StatusPagamento;
 import br.com.postech.techchallange.domain.port.out.StatusPagamentoRepositoryPort;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class StatusPagamentoRepositoryAdapter implements StatusPagamentoRepositoryPort {
 
 	private final StatusPagamentoJpaRepository repository;
 
-	public StatusPagamentoRepositoryAdapter(StatusPagamentoJpaRepository repository) {
-		this.repository = repository;
-	}
-
 	@Override
 	public Optional<StatusPagamento> buscarPorId(Long id) {
-		return repository.findById(id).map(StatusPagamentoMapper::toDomain);
+		return repository.findById(id)
+				.map(StatusPagamentoMapper::toDomain);
 	}
 
 	@Override
-	public StatusPagamento buscarStatusPagamentoPorStatus(String statusParam) {
+	public Optional<StatusPagamento> buscarStatusPagamentoPorStatus(String statusParam) {
 		return repository.findByNomeStatusIgnoreCase(statusParam)
-				.map(StatusPagamentoMapper::toDomain)
-				.orElseThrow(() -> new EntityNotFoundException("Status de pagamento não encontrado: " + statusParam));
+				.map(StatusPagamentoMapper::toDomain);
 	}
 	
 	@Override
 	public List<StatusPagamento> listarTodos() {
-		return repository.findAll().stream().map(StatusPagamentoMapper::toDomain).toList();
+		return repository.findAll()
+				.stream()
+				.map(StatusPagamentoMapper::toDomain)
+				.toList();
 	}
 
 }

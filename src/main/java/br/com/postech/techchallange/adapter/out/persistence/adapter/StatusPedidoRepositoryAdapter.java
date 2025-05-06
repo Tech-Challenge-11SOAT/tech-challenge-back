@@ -19,12 +19,14 @@ public class StatusPedidoRepositoryAdapter implements StatusPedidoRepositoryPort
 
 	@Override
 	public Optional<StatusPedido> buscarPorId(Long id) {
-		return this.repository.findById(id).map(StatusPedidoMapper::toDomain);
+		return this.repository.findById(id)
+				.map(StatusPedidoMapper::toDomain);
 	}
 
 	@Override
 	public Optional<StatusPedido> buscarPorNome(String nome) {
-		return this.repository.findByNomeStatusIgnoreCase(nome).map(StatusPedidoMapper::toDomain);
+		return this.repository.findByNomeStatusIgnoreCase(nome)
+				.map(StatusPedidoMapper::toDomain);
 	}
 	
 	@Override

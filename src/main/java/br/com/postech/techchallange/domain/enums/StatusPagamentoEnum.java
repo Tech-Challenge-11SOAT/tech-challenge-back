@@ -18,7 +18,7 @@ public enum StatusPagamentoEnum {
 	public static StatusPagamentoEnum of(String status) {
 		if (status == null) return null;
 		
-		return StatusPagamentoEnum.of(status);
+		return StatusPagamentoEnum.valueOf(status);
 	}
 	
 }

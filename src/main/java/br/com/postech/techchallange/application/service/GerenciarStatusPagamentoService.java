@@ -7,10 +7,11 @@ import org.springframework.stereotype.Service;
 import br.com.postech.techchallange.domain.model.StatusPagamento;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.out.StatusPagamentoRepositoryPort;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GerenciarStatusPagamentoService implements GerenciarStatusPagamentoUseCase {
 
 	private final StatusPagamentoRepositoryPort repository;
@@ -22,7 +23,8 @@ public class GerenciarStatusPagamentoService implements GerenciarStatusPagamento
 
 	@Override
 	public StatusPagamento buscarStatusPagamentoPorStatus(String status) {
-		return this.repository.buscarStatusPagamentoPorStatus(status);
+		return this.repository.buscarStatusPagamentoPorStatus(status).orElseThrow(
+				() -> new EntityNotFoundException("Status do pagamento não encontrado para o status: " + status));
 	}
 
 	@Override

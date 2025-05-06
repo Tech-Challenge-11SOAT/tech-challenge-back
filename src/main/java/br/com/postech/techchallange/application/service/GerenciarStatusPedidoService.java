@@ -3,6 +3,7 @@ package br.com.postech.techchallange.application.service;
 import br.com.postech.techchallange.domain.model.StatusPedido;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
 import br.com.postech.techchallange.domain.port.out.StatusPedidoRepositoryPort;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public class GerenciarStatusPedidoService implements GerenciarStatusPedidoUseCas
 	@Override
 	public StatusPedido buscarStatusPedidoPorNome(String nome) {
 		return this.repository.buscarPorNome(nome).orElseThrow(
-				() -> new IllegalArgumentException("Status do pedido não encontrado para o nome: " + nome));
+				() -> new EntityNotFoundException("Status do pedido não encontrado para o nome: " + nome));
 	}
 	
 	@Override

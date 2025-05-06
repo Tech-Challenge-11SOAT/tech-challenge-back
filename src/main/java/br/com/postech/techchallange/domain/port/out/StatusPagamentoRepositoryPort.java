@@ -8,7 +8,7 @@ import br.com.postech.techchallange.domain.model.StatusPagamento;
 public interface StatusPagamentoRepositoryPort {
 	Optional<StatusPagamento> buscarPorId(Long id);
 	
-	StatusPagamento buscarStatusPagamentoPorStatus(String status);
+	Optional<StatusPagamento> buscarStatusPagamentoPorStatus(String status);
 
 	List<StatusPagamento> listarTodos();
 }
