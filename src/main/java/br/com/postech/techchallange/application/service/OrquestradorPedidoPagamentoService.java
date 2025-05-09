@@ -45,8 +45,20 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 	@Override
 	@Transactional
 	public PedidoPagamentoResponse orquestrarPedidoPagamento(PedidoPagamentoRequest request) {
-		StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO.getStatus());
+		Pedido pedido = this.criarPedido(request);
+		List<PedidoProduto> produtos = this.processarProdutosPedido(request, pedido);
 
+		BigDecimal totalCalculado = this.calcularTotalPedido(produtos);
+		Pagamento pagamento = this.criarPagamento(request, pedido, totalCalculado);
+
+		this.pagamentoValidator.validar(pedido, pagamento);
+		pagamento = this.pagamentoRepository.salvar(pagamento);
+
+		return this.construirPedidoPagamentoResponse(pedido, pagamento);
+	}
+
+	private Pedido criarPedido(PedidoPagamentoRequest request) {
+		StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO.getStatus());
 		Pedido pedido = new Pedido(
 				null,
 				request.getIdCliente(),
@@ -54,48 +66,47 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 				status.getIdStatusPedido(),
 				LocalDateTime.now()
 		);
+		return gerenciarPedido.criarPedido(pedido);
+	}
 
-		pedido = gerenciarPedido.criarPedido(pedido);
-		final Pedido finalPedido = pedido;
+	private List<PedidoProduto> processarProdutosPedido(PedidoPagamentoRequest request, Pedido pedido) {
+		return request.getProdutos().stream().map(prod -> {
+			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto())
+					.orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
 
-		List<PedidoProduto> produtos = request.getProdutos().stream().map(prod -> {
-			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto()).get();
-			if (Objects.isNull(produto)) {
-				throw new EntityNotFoundException("Produto não encontrado");
-			}
-
-			return new PedidoProduto(
+			PedidoProduto pedidoProduto = new PedidoProduto(
 					null,
-					finalPedido.getId(),
+					pedido.getId(),
 					prod.getIdProduto(),
 					prod.getQuantidade(),
 					produto.getPreco()
 			);
+			this.pedidoProdutoRepository.salvarItemPedido(pedidoProduto);
+			return pedidoProduto;
 		}).collect(Collectors.toList());
+	}
 
-		produtos.forEach(item -> this.pedidoProdutoRepository.salvarItemPedido(item));
-
-		// Calcular total
-		BigDecimal totalCalculado = produtos.stream()
+	private BigDecimal calcularTotalPedido(List<PedidoProduto> produtos) {
+		return produtos.stream()
 				.map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
 
+	private Pagamento criarPagamento(PedidoPagamentoRequest request, Pedido pedido, BigDecimal totalCalculado) {
 		Long idStatusPagamento = this.gerenciarStatusPagamento
 				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
 				.getIdStatusPagamento();
 
-		Pagamento pagamento = Pagamento.builder()
+		return Pagamento.builder()
 				.idPedido(pedido.getId())
 				.metodoPagamento(request.getMetodoPagamento())
 				.valorTotal(totalCalculado)
 				.dataPagamento(LocalDateTime.now())
 				.idStatusPagamento(idStatusPagamento)
 				.build();
+	}
 
-		this.pagamentoValidator.validar(pedido, pagamento);
-		
-		pagamento = this.pagamentoRepository.salvar(pagamento);
-
+	private PedidoPagamentoResponse construirPedidoPagamentoResponse(Pedido pedido, Pagamento pagamento) {
 		return PedidoPagamentoResponse.builder()
 				.idPedido(pedido.getId())
 				.idPagamento(pagamento.getId())
