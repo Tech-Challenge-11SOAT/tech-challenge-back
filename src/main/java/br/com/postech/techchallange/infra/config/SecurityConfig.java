@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import br.com.postech.techchallange.domain.constants.SecurityConstants;
 import br.com.postech.techchallange.infra.security.JwtAuthenticationFilter;
 import br.com.postech.techchallange.infra.security.JwtProvider;
 import br.com.postech.techchallange.infra.security.TokenBlacklistService;
@@ -28,8 +29,8 @@ public class SecurityConfig {
 		return http
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/open/**").permitAll()
-	                    .requestMatchers("/admin/roles/**").hasRole("ADMIN")
+						.requestMatchers(SecurityConstants.AUTHORIZED_URLS).permitAll()
+						.requestMatchers("/admin/roles/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class)
 				.build();
