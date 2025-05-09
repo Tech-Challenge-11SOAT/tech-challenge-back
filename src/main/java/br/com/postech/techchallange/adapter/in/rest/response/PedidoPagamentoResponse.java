@@ -10,5 +10,4 @@ public class PedidoPagamentoResponse {
 	private Long idPagamento;
 	private String metodoPagamento;
 	private String status;
-	private String initPoint;
 }

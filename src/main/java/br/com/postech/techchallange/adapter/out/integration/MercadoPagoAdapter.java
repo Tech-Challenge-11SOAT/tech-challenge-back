@@ -45,8 +45,6 @@ public class MercadoPagoAdapter implements MercadoPagoPort {
 
 			Preference preference = client.create(preferenceRequest);
 
-			pagamento.setInitPoint(preference.getInitPoint());
-
 			return pagamento;
 
 		} catch (Exception e) {

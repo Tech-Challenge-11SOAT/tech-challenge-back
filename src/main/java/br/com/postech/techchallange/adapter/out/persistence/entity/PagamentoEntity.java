@@ -1,10 +1,15 @@
 package br.com.postech.techchallange.adapter.out.persistence.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Builder;
+import lombok.Data;
 
 @Entity
 @Table(name = "pagamento")
@@ -21,5 +26,4 @@ public class PagamentoEntity {
 	private String metodoPagamento;
 	private Long idStatusPagamento;
 	private LocalDateTime dataPagamento;
-	private String initPoint;
 }

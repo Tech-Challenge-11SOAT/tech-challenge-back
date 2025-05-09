@@ -41,7 +41,6 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 		Pagamento salvo = this.repository.salvar(pagamento);
 
 		Pagamento preferenciaCriada = mercadoPagoPort.criarPreferenciaPagamento(salvo);
-		salvo.setInitPoint(preferenciaCriada.getInitPoint());
 		repository.salvar(salvo);
 
 		return salvo;

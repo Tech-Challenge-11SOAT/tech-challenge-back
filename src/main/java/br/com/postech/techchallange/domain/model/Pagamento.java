@@ -16,5 +16,4 @@ public class Pagamento {
 	private String metodoPagamento;
 	private Long idStatusPagamento;
 	private LocalDateTime dataPagamento;
-	private String initPoint;
 }

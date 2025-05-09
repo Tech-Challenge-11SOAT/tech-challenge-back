@@ -21,7 +21,6 @@ import br.com.postech.techchallange.domain.port.in.GerenciarPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.OrquestradorPedidoPagamentoUseCase;
-import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.PedidoProdutoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
@@ -37,7 +36,6 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 	private final PedidoProdutoRepositoryPort pedidoProdutoRepository;
 	private final ProdutoRepositoryPort produtoRepository;
 	private final PagamentoRepositoryPort pagamentoRepository;
-	private final MercadoPagoPort mercadoPagoPort;
 	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
 
 	@Override
@@ -91,14 +89,12 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 				.build();
 
 		pagamento = this.pagamentoRepository.salvar(pagamento);
-		var initPoint = this.mercadoPagoPort.criarPreferenciaPagamento(pagamento);
 
 		return PedidoPagamentoResponse.builder()
 				.idPedido(pedido.getId())
 				.idPagamento(pagamento.getId())
 				.metodoPagamento(pagamento.getMetodoPagamento())
 				.status(StatusPagamentoEnum.PENDENTE.getStatus())
-				.initPoint(initPoint.getInitPoint())
 				.build();
 	}
 }
