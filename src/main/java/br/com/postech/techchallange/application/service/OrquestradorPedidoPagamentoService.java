@@ -1,5 +1,6 @@
 package br.com.postech.techchallange.application.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.postech.techchallange.adapter.in.rest.request.AtualizarPedidoRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.PedidoPagamentoRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoPagamentoResponse;
 import br.com.postech.techchallange.domain.enums.StatusPagamentoEnum;
@@ -21,6 +23,7 @@ import br.com.postech.techchallange.domain.port.in.GerenciarPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.OrquestradorPedidoPagamentoUseCase;
+import br.com.postech.techchallange.domain.port.in.PagamentoValidatorPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.PedidoProdutoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
@@ -37,6 +40,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 	private final ProdutoRepositoryPort produtoRepository;
 	private final PagamentoRepositoryPort pagamentoRepository;
 	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
+	private final PagamentoValidatorPort pagamentoValidator;
 
 	@Override
 	@Transactional
@@ -54,7 +58,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 		pedido = gerenciarPedido.criarPedido(pedido);
 		final Pedido finalPedido = pedido;
 
-		List<PedidoProduto> itens = request.getProdutos().stream().map(prod -> {
+		List<PedidoProduto> produtos = request.getProdutos().stream().map(prod -> {
 			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto()).get();
 			if (Objects.isNull(produto)) {
 				throw new EntityNotFoundException("Produto não encontrado");
@@ -69,12 +73,12 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 			);
 		}).collect(Collectors.toList());
 
-		itens.forEach(item -> this.pedidoProdutoRepository.salvarItemPedido(item));
+		produtos.forEach(item -> this.pedidoProdutoRepository.salvarItemPedido(item));
 
 		// Calcular total
-		var total = itens.stream()
-				.map(i -> i.getPrecoUnitario().multiply(java.math.BigDecimal.valueOf(i.getQuantidade())))
-				.reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+		BigDecimal totalCalculado = produtos.stream()
+				.map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		Long idStatusPagamento = this.gerenciarStatusPagamento
 				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
@@ -83,11 +87,13 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 		Pagamento pagamento = Pagamento.builder()
 				.idPedido(pedido.getId())
 				.metodoPagamento(request.getMetodoPagamento())
-				.valorTotal(total)
+				.valorTotal(totalCalculado)
 				.dataPagamento(LocalDateTime.now())
 				.idStatusPagamento(idStatusPagamento)
 				.build();
 
+		this.pagamentoValidator.validar(pedido, pagamento);
+		
 		pagamento = this.pagamentoRepository.salvar(pagamento);
 
 		return PedidoPagamentoResponse.builder()
@@ -96,5 +102,18 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
 				.metodoPagamento(pagamento.getMetodoPagamento())
 				.status(StatusPagamentoEnum.PENDENTE.getStatus())
 				.build();
+	}
+
+	@Override
+	public Pedido atualizarPedidoPagamento(AtualizarPedidoRequest request) {
+		Pedido pedido = this.gerenciarPedido.buscarPedido(request.getId());
+		if (Objects.isNull(pedido)) {
+			throw new EntityNotFoundException("Pedido não encontrado");
+		}
+		
+		Long statusId = this.gerenciarStatusPedido.buscarStatusPedidoPorNome(request.getStatus().getStatus())
+				.getIdStatusPedido();
+
+		return this.gerenciarPedido.atualizarPedido(pedido, statusId);
 	}
 }

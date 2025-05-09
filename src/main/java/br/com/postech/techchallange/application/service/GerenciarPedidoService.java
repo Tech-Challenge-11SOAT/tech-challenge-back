@@ -16,16 +16,21 @@ public class GerenciarPedidoService implements GerenciarPedidoUseCase {
 
     @Override
     public Pedido criarPedido(Pedido pedido) {
-        return pedidoRepository.salvar(pedido);
+        return this.pedidoRepository.salvar(pedido);
     }
 
     @Override
     public Pedido buscarPedido(Long id) {
-        return pedidoRepository.buscarPorId(id).orElse(null);
+        return this.pedidoRepository.buscarPorId(id).orElse(null);
     }
 
     @Override
     public List<Pedido> listarPedidos() {
-        return pedidoRepository.listarTodos();
+        return this.pedidoRepository.listarTodos();
     }
+
+	@Override
+	public Pedido atualizarPedido(Pedido pedido, Long statusId) {
+		return this.pedidoRepository.atualizar(pedido, statusId);
+	}
 }

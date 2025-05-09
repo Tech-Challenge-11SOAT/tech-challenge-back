@@ -7,6 +7,7 @@ import br.com.postech.techchallange.adapter.out.persistence.repository.PedidoJpa
 
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +34,19 @@ public class PedidoRepositoryAdapter implements PedidoRepositoryPort {
 	@Override
 	public List<Pedido> listarTodos() {
 		return jpaRepository.findAll()
-                .stream()
-                .map(PedidoMapper::toDomain)
-                .toList();
+				.stream()
+				.map(PedidoMapper::toDomain)
+				.toList();
+	}
+
+	@Override
+	public Pedido atualizar(Pedido pedido, Long statusId) {
+		var entity = PedidoMapper.toEntity(pedido);
+		entity.setIdStatusPedido(statusId);
+		entity.setDataStatus(LocalDateTime.now());
+
+		return Optional.ofNullable(jpaRepository.save(entity))
+				.map(PedidoMapper::toDomain)
+				.orElseThrow(() -> new IllegalStateException("Falha ao atualizar o pedido com ID: " + pedido.getId()));
 	}
 }
