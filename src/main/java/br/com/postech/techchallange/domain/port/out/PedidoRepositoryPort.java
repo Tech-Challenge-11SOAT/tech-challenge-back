@@ -13,6 +13,8 @@ public interface PedidoRepositoryPort {
 	Optional<Pedido> buscarPorId(Long id);
 
 	List<PedidoCompletoResponse> listarTodos();
+	
+	List<PedidoCompletoResponse> listarPorStatus(Long statusId);
 
 	Pedido atualizar(Pedido pedido, Long statusId);
 }

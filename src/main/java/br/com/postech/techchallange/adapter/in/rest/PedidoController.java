@@ -46,4 +46,10 @@ public class PedidoController {
 	public List<PedidoCompletoResponse> listar() {
 		return this.pedidoUseCase.listarPedidos();
 	}
+	
+	@Operation(summary = "Listar os pedidos por status")
+	@GetMapping("por-status")
+	public List<PedidoCompletoResponse> listarPedidosPorStatus(@RequestParam Long statusId) {
+		return this.pedidoUseCase.listarPorStatus(statusId);
+	}
 }

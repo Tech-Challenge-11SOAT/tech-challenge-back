@@ -1,6 +1,7 @@
 package br.com.postech.techchallange.application.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,16 @@ public class GerenciarPedidoService implements GerenciarPedidoUseCase {
 
 	@Override
 	public List<PedidoCompletoResponse> listarPedidos() {
-		return this.pedidoRepository.listarTodos();
+		return Optional.ofNullable(this.pedidoRepository.listarTodos())
+				.filter(pedidos -> !pedidos.isEmpty())
+				.orElseThrow(() -> new EntityNotFoundException("Nenhum pedido encontrado"));
+	}
+	
+	@Override
+	public List<PedidoCompletoResponse> listarPorStatus(Long statusId) {
+		return Optional.ofNullable(this.pedidoRepository.listarPorStatus(statusId))
+				.filter(pedidos -> !pedidos.isEmpty())
+				.orElseThrow(() -> new EntityNotFoundException(String.format("Nenhum pedido encontrado para o status %s", statusId)));
 	}
 
 	@Override

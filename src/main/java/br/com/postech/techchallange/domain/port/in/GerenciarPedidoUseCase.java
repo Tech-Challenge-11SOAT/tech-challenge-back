@@ -12,5 +12,7 @@ public interface GerenciarPedidoUseCase {
 
 	List<PedidoCompletoResponse> listarPedidos();
 	
+	List<PedidoCompletoResponse> listarPorStatus(Long statusId);
+	
 	Pedido atualizarPedido(Pedido pedido, Long statusId);
 }

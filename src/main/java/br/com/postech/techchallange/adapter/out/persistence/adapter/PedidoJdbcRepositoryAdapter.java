@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -19,32 +21,35 @@ import br.com.postech.techchallange.domain.port.out.PedidoRepositoryPort;
 
 @Repository
 public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEntity> implements PedidoRepositoryPort {
-
-	private static final String SQL_BASE = """
-		SELECT
-		  p.id_pedido,
-		  p.id_cliente,
-		  p.data_pedido,
-		  p.id_status_pedido,
-		  p.data_status
-		FROM pedido p
-	""";
 	
-	private static final String LISTAR_PEDIDOS_COMPLETOS = """
-			SELECT
-			  p.id_pedido,
-			  p.id_cliente,
-			  p.data_pedido,
-			  p.id_status_pedido,
-			  p.data_status,
-			  c.nome_cliente AS cliente_nome,
-			  c.email_cliente AS cliente_email,
-			  s.nome_status AS status_nome
-			FROM pedido p
-			JOIN cliente c ON c.id_cliente = p.id_cliente
-			JOIN status_pedido s ON s.id_status_pedido = p.id_status_pedido
-		""";
+	private static final Logger logger = LoggerFactory.getLogger(PedidoJdbcRepositoryAdapter.class);
 
+	private static final String SQL_BASE;
+	private static final String LISTAR_PEDIDOS_COMPLETOS;
+	private static final String LISTAR_PEDIDOS_POR_STATUS;
+
+	static {
+		StringBuilder base = new StringBuilder();
+		base.append("SELECT ")
+			.append(	"p.id_pedido, ")
+			.append(	"p.id_cliente, ")
+			.append(	"p.data_pedido, ")
+			.append(	"p.id_status_pedido, ")
+			.append(	"p.data_status, ")
+			.append(	"c.nome_cliente AS cliente_nome, ")
+			.append(	"c.email_cliente AS cliente_email, ")
+			.append(	"s.nome_status AS status_nome ")
+			.append( "FROM pedido p ")
+			.append("JOIN cliente c ON c.id_cliente = p.id_cliente ")
+			.append("JOIN status_pedido s ON s.id_status_pedido = p.id_status_pedido ");
+		SQL_BASE = base.toString();
+
+		LISTAR_PEDIDOS_COMPLETOS = SQL_BASE;
+
+		StringBuilder porStatus = new StringBuilder(SQL_BASE);
+		porStatus.append("WHERE p.id_status_pedido = ? ");
+		LISTAR_PEDIDOS_POR_STATUS = porStatus.toString();
+	}
 
 	private static final String INSERT_PEDIDO = """
 		INSERT INTO pedido (id_cliente, data_pedido, id_status_pedido, data_status)
@@ -63,6 +68,8 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 
 	@Override
 	public Pedido salvar(Pedido pedido) {
+		logger.info("Iniciando método para salvar pedido: {} || Insert: {}", pedido.toString(), INSERT_PEDIDO);
+		
 		Long idGerado = super.insertAndReturnId(
 			INSERT_PEDIDO,
 			pedido.getIdCliente(),
@@ -75,6 +82,8 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 
 	@Override
 	public Optional<Pedido> buscarPorId(Long id) {
+		logger.info("Iniciando método para buscar pedido por id: {} || Select: {}", id, SELECT_BY_ID);
+		
 		try {
 			return Optional.ofNullable(PedidoMapper.toDomain(super.queryOne(SELECT_BY_ID, id)));
 		} catch (Exception e) {
@@ -84,19 +93,29 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 
 	@Override
 	public List<PedidoCompletoResponse> listarTodos() {
-
+		logger.info("Iniciando método para buscar todos os pedido - Select: {}", LISTAR_PEDIDOS_COMPLETOS);
+		
 		RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
 		return super.jdbcTemplate.query(LISTAR_PEDIDOS_COMPLETOS, rowMapper);
+	}
+	
+	@Override
+	public List<PedidoCompletoResponse> listarPorStatus(Long statusId) {
+		logger.info("Iniciando método para buscar os pedido por status: {} - Select: {}", statusId, LISTAR_PEDIDOS_POR_STATUS);
+		
+		RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
+		return super.jdbcTemplate.query(LISTAR_PEDIDOS_POR_STATUS, rowMapper, statusId);
 	}
 
 	@Override
 	public Pedido atualizar(Pedido pedido, Long statusId) {
+		logger.info("Iniciando método para atualizar pedido: {} || Update: {}", pedido.toString(), UPDATE_STATUS);
+		
 		LocalDateTime agora = LocalDateTime.now();
 		super.executeUpdate(UPDATE_STATUS, statusId, agora, pedido.getId());
 		return this.buscarPorId(pedido.getId()).orElseThrow();
 	}
 
-	// RowMapper para PedidoEntity
 	private static class PedidoRowMapper implements RowMapper<PedidoEntity> {
 		@Override
 		public PedidoEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -110,7 +129,6 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 		}
 	}
 
-	// RowMapper para o endpoint enriquecido
 	public static class PedidoCompletoResponseRowMapper implements RowMapper<PedidoCompletoResponse> {
 		@Override
 		public PedidoCompletoResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -131,8 +149,3 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 		}
 	}
 }
-
-
-
-
-
