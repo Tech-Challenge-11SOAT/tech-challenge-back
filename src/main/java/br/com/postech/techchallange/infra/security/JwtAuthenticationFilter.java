@@ -32,13 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
 		String requestURI = request.getRequestURI();
 		logger.info("[JWT Filter] Nova requisição recebida: {}", requestURI);
 
 		String token = this.parseToken(request);
-		
-		if (requestURI.contains("/open")) {
+
+		if (SecurityUtils.isPublicEndpoint(requestURI)) {
 			logger.info("Endpoint não necessita de autorização, continuando...");
 			filterChain.doFilter(request, response);
 			return;
