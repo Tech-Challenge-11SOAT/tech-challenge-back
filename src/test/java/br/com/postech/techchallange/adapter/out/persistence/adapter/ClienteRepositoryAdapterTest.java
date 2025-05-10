@@ -42,6 +42,19 @@ class ClienteRepositoryAdapterTest {
         verify(jpaRepository).save(any(ClienteEntity.class));
     }
 
+    @Test
+    @DisplayName("Deve lançar exceção ao salvar cliente quando ocorrer erro no repositório")
+    void deveFalharAoSalvarCliente() {
+        // Arrange
+        Cliente cliente = new Cliente(null, "Erro", "erro@email.com", "00000000000");
+        when(jpaRepository.save(any(ClienteEntity.class)))
+                .thenThrow(new RuntimeException("Erro ao salvar"));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> adapter.salvar(cliente));
+        verify(jpaRepository).save(any(ClienteEntity.class));
+    }
+
 
     @Test
     @DisplayName("Deve buscar as informações do cliente através do Id no banco")
@@ -62,6 +75,21 @@ class ClienteRepositoryAdapterTest {
     }
 
     @Test
+    @DisplayName("Deve retornar vazio ao buscar cliente por ID inexistente")
+    void deveFalharAoBuscarClientePorIdInexistente() {
+        // Arrange
+        when(jpaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Cliente> resultado = adapter.buscarPorId(99L);
+
+        // Assert
+        assertFalse(resultado.isPresent());
+        verify(jpaRepository).findById(99L);
+    }
+
+
+    @Test
     @DisplayName("Deve listar as informações dos clientes do banco")
     void deveListarTodosOsClientes() {
         // Arrange
@@ -77,4 +105,19 @@ class ClienteRepositoryAdapterTest {
         assertEquals(2, resultado.size());
         verify(jpaRepository).findAll();
     }
+
+    @Test
+    @DisplayName("Deve retornar lista vazia quando não houver clientes cadastrados")
+    void deveRetornarListaVaziaSeNaoHouverClientes() {
+        // Arrange
+        when(jpaRepository.findAll()).thenReturn(List.of());
+
+        // Act
+        List<Cliente> resultado = adapter.listarTodos();
+
+        // Assert
+        assertTrue(resultado.isEmpty());
+        verify(jpaRepository).findAll();
+    }
+
 }
