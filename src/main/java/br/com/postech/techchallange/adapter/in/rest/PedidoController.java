@@ -1,5 +1,6 @@
 package br.com.postech.techchallange.adapter.in.rest;
 
+import br.com.postech.techchallange.adapter.in.rest.response.PedidoCompletoResponse;
 import br.com.postech.techchallange.domain.model.Pedido;
 import br.com.postech.techchallange.domain.port.in.GerenciarPedidoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,7 @@ public class PedidoController {
 
 	@Operation(summary = "Listar todos os pedidos")
 	@GetMapping
-	public List<Pedido> listar() {
-		return pedidoUseCase.listarPedidos();
+	public List<PedidoCompletoResponse> listar() {
+		return this.pedidoUseCase.listarPedidos();
 	}
 }

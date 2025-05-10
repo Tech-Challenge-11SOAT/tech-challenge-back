@@ -2,6 +2,7 @@ package br.com.postech.techchallange.domain.port.in;
 
 import java.util.List;
 
+import br.com.postech.techchallange.adapter.in.rest.response.PedidoCompletoResponse;
 import br.com.postech.techchallange.domain.model.Pedido;
 
 public interface GerenciarPedidoUseCase {
@@ -9,7 +10,7 @@ public interface GerenciarPedidoUseCase {
 
 	Pedido buscarPedido(Long id);
 
-	List<Pedido> listarPedidos();
+	List<PedidoCompletoResponse> listarPedidos();
 	
 	Pedido atualizarPedido(Pedido pedido, Long statusId);
 }
