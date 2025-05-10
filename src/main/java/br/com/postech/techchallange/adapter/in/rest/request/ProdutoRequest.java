@@ -19,7 +19,7 @@ public record ProdutoRequest(
 	@NotNull @Positive BigDecimal preco,
 
 	@Schema(description = "ID da imagem do produto", example = "1")
-	@NotNull Long idImagemUrl,
+	Long idImagemUrl,
 
 	@Schema(description = "ID da categoria do produto", example = "1")
 	@NotNull Long idCategoria
