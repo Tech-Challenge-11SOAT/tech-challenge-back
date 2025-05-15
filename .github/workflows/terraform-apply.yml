@@ -1,0 +1,67 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-apply:
+    environment: terraform
+    name: Run Terraform Apply
+    if: github.event.head_commit.message != 'skip apply'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    
+    env:
+      TF_VAR_db_username: ${{ secrets.TF_VAR_DB_USERNAME }}
+      TF_VAR_public_key: ${{ secrets.TF_VAR_PUBLIC_KEY }}
+      TF_VAR_db_password: ${{ secrets.TF_VAR_DB_PASSWORD }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::601920909369:role/aws-actions
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Obter IP público da EC2
+        id: get_ip
+        run: |
+          echo "INSTANCE_IP=$(terraform output -raw ec2_instance_ip)" >> $GITHUB_ENV
+      
+      - name: Sincronizar arquivos para a EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ env.INSTANCE_IP }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "/home/ec2-user/app"
+      
+      - name: Rodar docker compose up
+        run: |
+          echo "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+          ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@${{ env.INSTANCE_IP }} '
+            cd /home/ec2-user/app/docker && docker-compose up -d --build
+          '
