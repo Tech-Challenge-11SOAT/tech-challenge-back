@@ -1,4 +1,5 @@
 INSERT INTO status_pedido (ID_STATUS_pedido, NOME_STATUS) VALUES
 (1, 'RECEBIDO'),
-(2, 'EM_ANDAMENTO'),
-(3, 'FINALIZADO');
+(2, 'RECEBIDO - Não pago'),
+(3, 'EM_ANDAMENTO'),
+(4, 'FINALIZADO');

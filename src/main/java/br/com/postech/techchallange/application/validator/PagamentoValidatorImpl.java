@@ -21,28 +21,28 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PagamentoValidatorImpl implements PagamentoValidatorPort {
 
-	private final GerenciarStatusPedidoUseCase gerenciarStatusPedidoUseCase;
-	private final PedidoProdutoRepositoryPort pedidoProdutoRepositoryPort;
+    private final GerenciarStatusPedidoUseCase gerenciarStatusPedidoUseCase;
+    private final PedidoProdutoRepositoryPort pedidoProdutoRepositoryPort;
 
-	@Override
-	public void validar(Pedido pedido, Pagamento pagamento) {
-		if (pedido == null) {
-			throw new EntityNotFoundException("Pedido não encontrado.");
-		}
+    @Override
+    public void validar(Pedido pedido, Pagamento pagamento) {
+        if (pedido == null) {
+            throw new EntityNotFoundException("Pedido não encontrado.");
+        }
 
-		StatusPedido statusPedido = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(pedido.getIdStatusPedido());
+        StatusPedido statusPedido = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(pedido.getIdStatusPedido());
 
-		if (!StatusPedidoEnum.RECEBIDO.getStatus().equalsIgnoreCase(statusPedido.getNomeStatus())) {
-			throw new IllegalStateException("O pagamento é permitido apenas para pedidos com o status RECEBIDO.");
-		}
+        if (!StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus().equalsIgnoreCase(statusPedido.getNomeStatus())) {
+            throw new IllegalStateException("O pagamento é permitido apenas para pedidos com o status RECEBIDO.");
+        }
 
-		List<PedidoProduto> produtos = pedidoProdutoRepositoryPort.buscarPorIdPedido(pedido.getId());
-		BigDecimal totalCalculado = produtos.stream()
-				.map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<PedidoProduto> produtos = pedidoProdutoRepositoryPort.buscarPorIdPedido(pedido.getId());
+        BigDecimal totalCalculado = produtos.stream()
+                .map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		if (pagamento.getValorTotal() == null || pagamento.getValorTotal().compareTo(totalCalculado) != 0) {
-			throw new InvalidPaymentAmountException();
-		}
-	}
+        if (pagamento.getValorTotal() == null || pagamento.getValorTotal().compareTo(totalCalculado) != 0) {
+            throw new InvalidPaymentAmountException();
+        }
+    }
 }

@@ -34,97 +34,97 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPagamentoUseCase {
 
-	private final GerenciarPedidoUseCase gerenciarPedido;
-	private final GerenciarStatusPedidoUseCase gerenciarStatusPedido;
-	private final PedidoProdutoRepositoryPort pedidoProdutoRepository;
-	private final ProdutoRepositoryPort produtoRepository;
-	private final PagamentoRepositoryPort pagamentoRepository;
-	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
-	private final PagamentoValidatorPort pagamentoValidator;
+    private final GerenciarPedidoUseCase gerenciarPedido;
+    private final GerenciarStatusPedidoUseCase gerenciarStatusPedido;
+    private final PedidoProdutoRepositoryPort pedidoProdutoRepository;
+    private final ProdutoRepositoryPort produtoRepository;
+    private final PagamentoRepositoryPort pagamentoRepository;
+    private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
+    private final PagamentoValidatorPort pagamentoValidator;
 
-	@Override
-	@Transactional
-	public PedidoPagamentoResponse orquestrarPedidoPagamento(PedidoPagamentoRequest request) {
-		Pedido pedido = this.criarPedido(request);
-		List<PedidoProduto> produtos = this.processarProdutosPedido(request, pedido);
+    @Override
+    @Transactional
+    public PedidoPagamentoResponse orquestrarPedidoPagamento(PedidoPagamentoRequest request) {
+        Pedido pedido = this.criarPedido(request);
+        List<PedidoProduto> produtos = this.processarProdutosPedido(request, pedido);
 
-		BigDecimal totalCalculado = this.calcularTotalPedido(produtos);
-		Pagamento pagamento = this.criarPagamento(request, pedido, totalCalculado);
+        BigDecimal totalCalculado = this.calcularTotalPedido(produtos);
+        Pagamento pagamento = this.criarPagamento(request, pedido, totalCalculado);
 
-		this.pagamentoValidator.validar(pedido, pagamento);
-		pagamento = this.pagamentoRepository.salvar(pagamento);
+        this.pagamentoValidator.validar(pedido, pagamento);
+        pagamento = this.pagamentoRepository.salvar(pagamento);
 
-		return this.construirPedidoPagamentoResponse(pedido, pagamento);
-	}
+        return this.construirPedidoPagamentoResponse(pedido, pagamento);
+    }
 
-	private Pedido criarPedido(PedidoPagamentoRequest request) {
-		StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO.getStatus());
-		Pedido pedido = new Pedido(
-				null,
-				request.getIdCliente(),
-				LocalDateTime.now(),
-				status.getIdStatusPedido(),
-				LocalDateTime.now()
-		);
-		return gerenciarPedido.criarPedido(pedido);
-	}
+    private Pedido criarPedido(PedidoPagamentoRequest request) {
+        StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus());
+        Pedido pedido = new Pedido(
+                null,
+                request.getIdCliente(),
+                LocalDateTime.now(),
+                status.getIdStatusPedido(),
+                LocalDateTime.now()
+        );
+        return gerenciarPedido.criarPedido(pedido);
+    }
 
-	private List<PedidoProduto> processarProdutosPedido(PedidoPagamentoRequest request, Pedido pedido) {
-		return request.getProdutos().stream().map(prod -> {
-			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto())
-					.orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+    private List<PedidoProduto> processarProdutosPedido(PedidoPagamentoRequest request, Pedido pedido) {
+        return request.getProdutos().stream().map(prod -> {
+            Produto produto = produtoRepository.buscarPorId(prod.getIdProduto())
+                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
 
-			PedidoProduto pedidoProduto = new PedidoProduto(
-					null,
-					pedido.getId(),
-					prod.getIdProduto(),
-					prod.getQuantidade(),
-					produto.getPreco()
-			);
-			this.pedidoProdutoRepository.salvarItemPedido(pedidoProduto);
-			return pedidoProduto;
-		}).collect(Collectors.toList());
-	}
+            PedidoProduto pedidoProduto = new PedidoProduto(
+                    null,
+                    pedido.getId(),
+                    prod.getIdProduto(),
+                    prod.getQuantidade(),
+                    produto.getPreco()
+            );
+            this.pedidoProdutoRepository.salvarItemPedido(pedidoProduto);
+            return pedidoProduto;
+        }).collect(Collectors.toList());
+    }
 
-	private BigDecimal calcularTotalPedido(List<PedidoProduto> produtos) {
-		return produtos.stream()
-				.map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
+    private BigDecimal calcularTotalPedido(List<PedidoProduto> produtos) {
+        return produtos.stream()
+                .map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-	private Pagamento criarPagamento(PedidoPagamentoRequest request, Pedido pedido, BigDecimal totalCalculado) {
-		Long idStatusPagamento = this.gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
-				.getIdStatusPagamento();
+    private Pagamento criarPagamento(PedidoPagamentoRequest request, Pedido pedido, BigDecimal totalCalculado) {
+        Long idStatusPagamento = this.gerenciarStatusPagamento
+                .buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
+                .getIdStatusPagamento();
 
-		return Pagamento.builder()
-				.idPedido(pedido.getId())
-				.metodoPagamento(request.getMetodoPagamento())
-				.valorTotal(totalCalculado)
-				.dataPagamento(LocalDateTime.now())
-				.idStatusPagamento(idStatusPagamento)
-				.build();
-	}
+        return Pagamento.builder()
+                .idPedido(pedido.getId())
+                .metodoPagamento(request.getMetodoPagamento())
+                .valorTotal(totalCalculado)
+                .dataPagamento(LocalDateTime.now())
+                .idStatusPagamento(idStatusPagamento)
+                .build();
+    }
 
-	private PedidoPagamentoResponse construirPedidoPagamentoResponse(Pedido pedido, Pagamento pagamento) {
-		return PedidoPagamentoResponse.builder()
-				.idPedido(pedido.getId())
-				.idPagamento(pagamento.getId())
-				.metodoPagamento(pagamento.getMetodoPagamento())
-				.status(StatusPagamentoEnum.PENDENTE.getStatus())
-				.build();
-	}
+    private PedidoPagamentoResponse construirPedidoPagamentoResponse(Pedido pedido, Pagamento pagamento) {
+        return PedidoPagamentoResponse.builder()
+                .idPedido(pedido.getId())
+                .idPagamento(pagamento.getId())
+                .metodoPagamento(pagamento.getMetodoPagamento())
+                .status(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus())
+                .build();
+    }
 
-	@Override
-	public Pedido atualizarPedidoPagamento(AtualizarPedidoRequest request) {
-		Pedido pedido = this.gerenciarPedido.buscarPedido(request.getId());
-		if (Objects.isNull(pedido)) {
-			throw new EntityNotFoundException("Pedido não encontrado");
-		}
-		
-		Long statusId = this.gerenciarStatusPedido.buscarStatusPedidoPorNome(request.getStatus().getStatus())
-				.getIdStatusPedido();
+    @Override
+    public Pedido atualizarPedidoPagamento(AtualizarPedidoRequest request) {
+        Pedido pedido = this.gerenciarPedido.buscarPedido(request.getId());
+        if (Objects.isNull(pedido)) {
+            throw new EntityNotFoundException("Pedido não encontrado");
+        }
 
-		return this.gerenciarPedido.atualizarPedido(pedido, statusId);
-	}
+        Long statusId = this.gerenciarStatusPedido.buscarStatusPedidoPorNome(request.getStatus().getStatus())
+                .getIdStatusPedido();
+
+        return this.gerenciarPedido.atualizarPedido(pedido, statusId);
+    }
 }
