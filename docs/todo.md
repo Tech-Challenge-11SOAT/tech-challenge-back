@@ -24,11 +24,11 @@
 - [x] Fila implementada inicialmente apenas em banco de dados
 
 ## 4. Docker & Deploy
-- [ ] 1 instância para banco de dados ⚠️
-- [ ] 1 instância para aplicação ⚠️
-- [ ] Dockerfile configurado corretamente ⚠️
-- [ ] docker-compose.yml para subir o ambiente completo ⚠️
-- [ ] Boas práticas de segurança e inicialização rápida
+- [x] 1 instância para banco de dados ⚠️
+- [x] 1 instância para aplicação ⚠️
+- [x] Dockerfile configurado corretamente ⚠️
+- [x] docker-compose.yml para subir o ambiente completo ⚠️
+- [x] Boas práticas de segurança e inicialização rápida
 
 ## 5. Validação da POC
 - [ ] Vídeo demonstrando a arquitetura localmente ⚠️
