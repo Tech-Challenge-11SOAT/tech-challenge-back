@@ -13,14 +13,18 @@ import static org.mockito.Mockito.*;
 
 class GerenciarClienteServiceTest {
 
-    private ClienteRepositoryPort clienteRepository;
-    private GerenciarClienteService gerenciarClienteService;
+    private ClienteRepositoryPort repository;
+    private GerenciarClienteService service;
 
     @BeforeEach
     void setUp() {
-        clienteRepository = Mockito.mock(ClienteRepositoryPort.class);
-        gerenciarClienteService = new GerenciarClienteService(clienteRepository);
+        repository = Mockito.mock(ClienteRepositoryPort.class);
+        service = new GerenciarClienteService(repository);
     }
+
+
+    // Testes para salvar informações ---------------------------------------------------------------
+
 
     @Test
     @DisplayName("Deve cadastrar um cliente com sucesso")
@@ -28,15 +32,19 @@ class GerenciarClienteServiceTest {
         // Arrange
         Cliente cliente = new Cliente(1L, "Joao", "joao@email.com", "12345678900");
 
-        when(clienteRepository.salvar(cliente)).thenReturn(cliente);
+        when(repository.salvar(cliente)).thenReturn(cliente);
 
         // Act
-        Cliente resultado = gerenciarClienteService.cadastrarCliente(cliente);
+        Cliente resultado = service.cadastrarCliente(cliente);
 
         // Assert
         assertEquals(cliente, resultado);
-        verify(clienteRepository).salvar(cliente);
+        verify(repository).salvar(cliente);
     }
+
+
+    // Testes para buscar cliente por ID ---------------------------------------------------------------
+
 
     @Test
     @DisplayName("Deve buscar um cliente existente pelo ID")
@@ -44,30 +52,34 @@ class GerenciarClienteServiceTest {
         // Arrange
         Cliente cliente = new Cliente(1L, "Maria", "maria@email.com", "98765432100");
 
-        when(clienteRepository.buscarPorId(1L)).thenReturn(Optional.of(cliente));
+        when(repository.buscarPorId(1L)).thenReturn(Optional.of(cliente));
 
         // Act
-        Cliente resultado = gerenciarClienteService.buscarCliente(1L);
+        Cliente resultado = service.buscarCliente(1L);
 
         // Assert
         assertNotNull(resultado);
         assertEquals(cliente, resultado);
-        verify(clienteRepository).buscarPorId(1L);
+        verify(repository).buscarPorId(1L);
     }
 
     @Test
     @DisplayName("Deve retornar null quando o cliente não existir")
     void deveRetornarNullQuandoClienteNaoExiste() {
 
-        when(clienteRepository.buscarPorId(99L)).thenReturn(Optional.empty());
+        when(repository.buscarPorId(99L)).thenReturn(Optional.empty());
 
         // Act
-        Cliente resultado = gerenciarClienteService.buscarCliente(99L);
+        Cliente resultado = service.buscarCliente(99L);
 
         // Assert
         assertNull(resultado);
-        verify(clienteRepository).buscarPorId(99L);
+        verify(repository).buscarPorId(99L);
     }
+
+
+    // Testes para listar os clientes ---------------------------------------------------------------
+
 
     @Test
     @DisplayName("Deve listar todos os clientes cadastrados")
@@ -78,14 +90,14 @@ class GerenciarClienteServiceTest {
                 new Cliente(2L, "Carlos", "carlos@email.com", "55566677788")
         );
 
-        when(clienteRepository.listarTodos()).thenReturn(clientes);
+        when(repository.listarTodos()).thenReturn(clientes);
 
         // Act
-        List<Cliente> resultado = gerenciarClienteService.listarClientes();
+        List<Cliente> resultado = service.listarClientes();
 
         // Assert
         assertEquals(2, resultado.size());
         assertEquals(clientes, resultado);
-        verify(clienteRepository).listarTodos();
+        verify(repository).listarTodos();
     }
 }

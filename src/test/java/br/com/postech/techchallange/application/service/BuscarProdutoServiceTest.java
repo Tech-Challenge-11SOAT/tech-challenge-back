@@ -13,13 +13,13 @@ import static org.mockito.Mockito.*;
 
 class BuscarProdutoServiceTest {
 
-    private ProdutoRepositoryPort produtoRepository;
-    private BuscarProdutoService buscarProdutoService;
+    private ProdutoRepositoryPort repository;
+    private BuscarProdutoService service;
 
     @BeforeEach
     void setUp() {
-        produtoRepository = Mockito.mock(ProdutoRepositoryPort.class);
-        buscarProdutoService = new BuscarProdutoService(produtoRepository);
+        repository = Mockito.mock(ProdutoRepositoryPort.class);
+        service = new BuscarProdutoService(repository);
     }
 
     @Test
@@ -27,28 +27,28 @@ class BuscarProdutoServiceTest {
         // Arrange
         Produto produto = criarProduto(1L);
 
-        when(produtoRepository.buscarPorId(1L)).thenReturn(Optional.of(produto));
+        when(repository.buscarPorId(1L)).thenReturn(Optional.of(produto));
 
         // Act
-        Optional<Produto> resultado = buscarProdutoService.buscarPorId(1L);
+        Optional<Produto> resultado = service.buscarPorId(1L);
 
         // Assert
         assertTrue(resultado.isPresent());
         assertEquals("Produto Teste", resultado.get().getNome());
-        verify(produtoRepository, times(1)).buscarPorId(1L);
+        verify(repository, times(1)).buscarPorId(1L);
     }
 
     @Test
     void deveRetornarEmptyQuandoIdNaoExistir() {
         // Arrange
-        when(produtoRepository.buscarPorId(2L)).thenReturn(Optional.empty());
+        when(repository.buscarPorId(2L)).thenReturn(Optional.empty());
 
         // Act
-        Optional<Produto> resultado = buscarProdutoService.buscarPorId(2L);
+        Optional<Produto> resultado = service.buscarPorId(2L);
 
         // Assert
         assertFalse(resultado.isPresent());
-        verify(produtoRepository, times(1)).buscarPorId(2L);
+        verify(repository, times(1)).buscarPorId(2L);
     }
 
     private Produto criarProduto(Long id) {
