@@ -15,7 +15,7 @@
   - [x] Identificação do Cliente via CPF
   - [x] Criar, editar e remover produtos
   - [ ] Buscar produtos por categoria ⚠️
-  - [ ] Fake checkout: enviar produtos escolhidos para a fila (finalização do pedido) ⚠️
+  - [x] Fake checkout: enviar produtos escolhidos para a fila (finalização do pedido) ⚠️
   - [x] Listar os pedidos
   - [x] Swagger disponível para consumo das APIs
 - [x] Banco de dados integrado
