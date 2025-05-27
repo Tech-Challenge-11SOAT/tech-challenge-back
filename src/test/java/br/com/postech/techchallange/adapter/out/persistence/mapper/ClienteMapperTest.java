@@ -2,12 +2,14 @@ package br.com.postech.techchallange.adapter.out.persistence.mapper;
 
 import br.com.postech.techchallange.adapter.out.persistence.entity.ClienteEntity;
 import br.com.postech.techchallange.domain.model.Cliente;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClienteMapperTest {
 
     @Test
+    @DisplayName("Deve converter ClienteEntity para ClienteDomain")
     void deveConverterClienteEntityParaClienteDomain() {
         // Arrange
         ClienteEntity entity = new ClienteEntity();
@@ -28,6 +30,7 @@ public class ClienteMapperTest {
     }
 
     @Test
+    @DisplayName("Deve converter ClienteDomain para ClienteEntity")
     void deveConverterClienteDomainParaClienteEntity() {
         // Arrange
         Cliente cliente = new Cliente(2L, "Maria Souza", "maria@example.com", "98765432100");
