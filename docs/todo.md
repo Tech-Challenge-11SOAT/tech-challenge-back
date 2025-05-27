@@ -14,7 +14,7 @@
   - [x] Cadastro do Cliente
   - [x] Identificação do Cliente via CPF
   - [x] Criar, editar e remover produtos
-  - [ ] Buscar produtos por categoria ⚠️
+  - [x] Buscar produtos por categoria ⚠️
   - [x] Fake checkout: enviar produtos escolhidos para a fila (finalização do pedido) ⚠️
   - [x] Listar os pedidos
   - [x] Swagger disponível para consumo das APIs
