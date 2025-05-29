@@ -106,8 +106,13 @@ Para executar os testes:
 
 ## 📚 Documentação
 
-A documentação da API está disponível através do Swagger UI quando a aplicação está em execução:
-http://localhost:8080/swagger-ui/index.html
+A documentação da API está disponível através do:
+
+- Swagger UI (quando a aplicação está em execução):
+  http://localhost:8080/swagger-ui/index.html
+  
+- Documentação detalhada no Notion:
+  https://www.notion.so/techchallange
 
 ## ⚙️ Configuração do Ambiente de Desenvolvimento
 
