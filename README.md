@@ -76,14 +76,24 @@ MERCADO_PAGO_NOTIFICATION_URL=url_de_notificacao
 
 3. Execute o projeto:
 
-Opção 1 - Via arquivo .bat (Windows):
+Opção 1 - Via scripts de automação (Recomendado):
+
+**Para Windows:**
 ```bash
 run.bat
 ```
-O script irá:
+
+**Para macOS/Linux:**
+```bash
+chmod +x run.sh  # Apenas na primeira vez
+./run.sh
+```
+
+Os scripts irão automaticamente:
 - Verificar se o Docker está em execução
+- Verificar conectividade com Maven Central
 - Parar e remover containers antigos
-- Fazer o build e subir os containers
+- Fazer o build e subir os containers (com retry automático)
 - Aguardar a aplicação inicializar
 - Abrir o Swagger automaticamente no navegador
 
