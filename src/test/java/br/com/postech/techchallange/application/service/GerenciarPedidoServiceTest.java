@@ -1,7 +1,9 @@
 package br.com.postech.techchallange.application.service;
 
+import br.com.postech.techchallange.adapter.in.rest.response.PedidoCompletoResponse;
 import br.com.postech.techchallange.domain.model.Pedido;
 import br.com.postech.techchallange.domain.port.out.PedidoRepositoryPort;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,9 +26,7 @@ class GerenciarPedidoServiceTest {
         service = new GerenciarPedidoService(repository);
     }
 
-
     // Testes para salvar informações ---------------------------------------------------------------
-
 
     @Test
     @DisplayName("Deve criar um pedido com sucesso")
@@ -51,9 +51,7 @@ class GerenciarPedidoServiceTest {
         verify(repository).salvar(pedido);
     }
 
-
     // Testes para buscar pedido por ID ---------------------------------------------------------------
-
 
     @Test
     @DisplayName("Deve retornar o pedido pelo ID")
@@ -69,43 +67,61 @@ class GerenciarPedidoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null ao buscar pedido por ID inexistente")
-    void deveRetornarNullSePedidoNaoExistir() {
+    @DisplayName("Deve lançar exceção se pedido não for encontrado pelo ID")
+    void deveLancarExcecaoSePedidoNaoForEncontrado() {
         when(repository.buscarPorId(99L)).thenReturn(Optional.empty());
 
-        Pedido resultado = service.buscarPedido(99L);
-
-        assertNull(resultado);
+        assertThrows(EntityNotFoundException.class, () -> service.buscarPedido(99L));
         verify(repository).buscarPorId(99L);
     }
 
-
     // Testes para listar os pedidos ---------------------------------------------------------------
-
 
     @Test
     @DisplayName("Deve listar todos os pedidos")
     void deveListarTodosOsPedidos() {
-        Pedido pedido1 = criarPedido(1L);
-        Pedido pedido2 = new Pedido(2L, 11L, LocalDateTime.now(), 2L, LocalDateTime.now());
+        PedidoCompletoResponse pedido1 = criarPedidoCompletoResponse(1L);
+        PedidoCompletoResponse pedido2 = criarPedidoCompletoResponse(2L);
         when(repository.listarTodos()).thenReturn(List.of(pedido1, pedido2));
 
-        List<Pedido> pedidos = service.listarPedidos();
+        List<PedidoCompletoResponse> pedidos = service.listarPedidos();
 
         assertEquals(2, pedidos.size());
         verify(repository).listarTodos();
     }
 
     @Test
-    @DisplayName("Deve retornar lista vazia se nao houver pedidos")
-    void deveRetornarListaVaziaSeNaoHouverPedidos() {
+    @DisplayName("Deve lançar exceção se não houver pedidos")
+    void deveLancarExcecaoSeNaoHouverPedidos() {
         when(repository.listarTodos()).thenReturn(List.of());
 
-        List<Pedido> pedidos = service.listarPedidos();
-
-        assertTrue(pedidos.isEmpty());
+        assertThrows(EntityNotFoundException.class, () -> service.listarPedidos());
         verify(repository).listarTodos();
     }
+
+    @Test
+    @DisplayName("Deve listar pedidos por status")
+    void deveListarPedidosPorStatus() {
+        PedidoCompletoResponse pedido1 = criarPedidoCompletoResponse(1L);
+        PedidoCompletoResponse pedido2 = criarPedidoCompletoResponse(2L);
+        when(repository.listarPorStatus(1L)).thenReturn(List.of(pedido1, pedido2));
+
+        List<PedidoCompletoResponse> pedidos = service.listarPorStatus(1L);
+
+        assertEquals(2, pedidos.size());
+        verify(repository).listarPorStatus(1L);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção se não houver pedidos com o status")
+    void deveLancarExcecaoSeNaoHouverPedidosComStatus() {
+        when(repository.listarPorStatus(1L)).thenReturn(List.of());
+
+        assertThrows(EntityNotFoundException.class, () -> service.listarPorStatus(1L));
+        verify(repository).listarPorStatus(1L);
+    }
+
+
 
     private Pedido criarPedido(Long id) {
         return new Pedido(
@@ -114,6 +130,22 @@ class GerenciarPedidoServiceTest {
                 LocalDateTime.now(),
                 1L,
                 LocalDateTime.now()
+        );
+    }
+
+    private PedidoCompletoResponse criarPedidoCompletoResponse(Long id) {
+        PedidoCompletoResponse.Cliente cliente =
+                new PedidoCompletoResponse.Cliente(10L, "Joao da Silva", "joao@email.com");
+
+        PedidoCompletoResponse.StatusPedido status =
+                new PedidoCompletoResponse.StatusPedido(1L, "Recebido");
+
+        return new PedidoCompletoResponse(
+                id,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                cliente,
+                status
         );
     }
 
