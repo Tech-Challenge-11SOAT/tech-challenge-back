@@ -74,7 +74,20 @@ MERCADO_PAGO_EXTERNAL_POS_ID=seu_pos_id
 MERCADO_PAGO_NOTIFICATION_URL=url_de_notificacao
 ```
 
-3. Execute o projeto com Docker Compose:
+3. Execute o projeto:
+
+Opção 1 - Via arquivo .bat (Windows):
+```bash
+run.bat
+```
+O script irá:
+- Verificar se o Docker está em execução
+- Parar e remover containers antigos
+- Fazer o build e subir os containers
+- Aguardar a aplicação inicializar
+- Abrir o Swagger automaticamente no navegador
+
+Opção 2 - Via Docker Compose manualmente:
 ```bash
 cd docker
 docker-compose up -d
