@@ -94,7 +94,7 @@ class PagamentoRepositoryAdapterTest {
     void deveListarTodosOsPagamentos() {
         PagamentoEntity pagamento1 = PagamentoMapper.toEntity(criarPagamento(1L));
         PagamentoEntity pagamento2 = PagamentoMapper.toEntity(new Pagamento(
-                2L, 20L, new BigDecimal("150.00"), "Cartao", 2L, LocalDateTime.now(), "https://link.com/outro"));
+                2L, 20L, new BigDecimal("150.00"), "Cartao", 2L, LocalDateTime.now()));
 
         when(jpaRepository.findAll()).thenReturn(List.of(pagamento1, pagamento2));
 
@@ -123,8 +123,7 @@ class PagamentoRepositoryAdapterTest {
                 new BigDecimal("99.99"),
                 "PIX",
                 1L,
-                LocalDateTime.now(),
-                "https://meu.pagamento.com/abc123"
+                LocalDateTime.now()
         );
     }
 }

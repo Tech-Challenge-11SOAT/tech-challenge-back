@@ -21,7 +21,6 @@ class PagamentoMapperTest {
                 .metodoPagamento("PIX")
                 .idStatusPagamento(2L)
                 .dataPagamento(LocalDateTime.of(2025, 5, 21, 14, 30))
-                .initPoint("https://pagamento.link/initpoint")
                 .build();
 
         Pagamento domain = PagamentoMapper.toDomain(entity);
@@ -32,7 +31,7 @@ class PagamentoMapperTest {
         assertEquals(entity.getMetodoPagamento(), domain.getMetodoPagamento());
         assertEquals(entity.getIdStatusPagamento(), domain.getIdStatusPagamento());
         assertEquals(entity.getDataPagamento(), domain.getDataPagamento());
-        assertEquals(entity.getInitPoint(), domain.getInitPoint());
+
     }
 
     @Test
@@ -45,7 +44,6 @@ class PagamentoMapperTest {
                 .metodoPagamento("CARTAO")
                 .idStatusPagamento(3L)
                 .dataPagamento(LocalDateTime.of(2025, 5, 22, 10, 0))
-                .initPoint("https://pagamento.link/initpoint2")
                 .build();
 
         PagamentoEntity entity = PagamentoMapper.toEntity(domain);
@@ -56,6 +54,5 @@ class PagamentoMapperTest {
         assertEquals(domain.getMetodoPagamento(), entity.getMetodoPagamento());
         assertEquals(domain.getIdStatusPagamento(), entity.getIdStatusPagamento());
         assertEquals(domain.getDataPagamento(), entity.getDataPagamento());
-        assertEquals(domain.getInitPoint(), entity.getInitPoint());
     }
 }
