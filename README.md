@@ -41,11 +41,67 @@ src/main/java/br/com/postech/techchallange/
 
 ## 🛠 Funcionalidades
 
-- Cadastro e autenticação de usuários
-- Gestão de produtos e categorias
-- Sistema de pedidos
+### Administração
+- Gerenciamento de usuários admin
+- Cadastro e atribuição de roles
+- Autenticação e refresh token
+
+### Produtos
+- CRUD completo de produtos
+- Busca por categoria
+- Listagem e filtros
+
+### Clientes
+- Cadastro de clientes
+- Identificação por CPF
+- Listagem e busca
+
+### Pedidos e Pagamentos
+- Criação de pedidos
+- Checkout e pagamento
+- Acompanhamento de status
+- QR Code para pagamento
 - Fila de pedidos
-- APIs documentadas com Swagger
+- Histórico de pedidos
+
+### Status e Monitoramento
+- Status de pedidos
+- Status de pagamentos
+- Consulta de pagamentos
+
+## 📡 APIs e Endpoints
+
+O sistema possui uma collection do Postman completa com todos os endpoints organizados em pastas:
+
+### Admin
+- Login e registro
+- Gerenciamento de usuários e roles
+- Refresh token e logout
+
+### Produtos
+- CRUD de produtos
+- Busca por categoria
+
+### Clientes
+- Cadastro e identificação
+- Listagem e busca
+
+### Pedidos
+- Criação e checkout
+- Listagem e status
+- Busca por ID
+
+### Pagamentos
+- Criação de pagamentos
+- QR Code
+- Consulta de status
+
+### Status
+- Status de pedidos
+- Status de pagamentos
+- Atualização de status
+
+A collection do Postman está disponível em `/postman/11SOAT Pos-tech.postman_collection.json`.
 
 ## 🚀 Como Executar
 
@@ -97,12 +153,26 @@ A aplicação estará disponível em:
 - Swagger: http://localhost:8080/swagger-ui/index.html
 - Banco de dados MySQL: localhost:3307
 
+### Testando a API
+
+1. Importe a collection do Postman localizada em `/postman/11SOAT Pos-tech.postman_collection.json`
+2. Execute os endpoints na seguinte ordem para um fluxo completo:
+   - Cadastre um usuário admin (Admin > Register)
+   - Faça login como admin (Admin > Login)
+   - Cadastre produtos (Produto > Criar produto)
+   - Cadastre um cliente (Cliente > Adicionar Cliente)
+   - Crie um pedido (Pedido > Criar Pedido)
+   - Realize o checkout (Pedido > Checkout)
+   - Crie o pagamento (Pagamentos > Criar pagamento)
+   - Acompanhe o status (Status Pedidos > Listar todos os status)
+
 ## 📦 Estrutura do Projeto
 
 ```
 /
 ├── docker/           # Arquivos Docker e docker-compose
 ├── docs/            # Documentação do projeto
+├── postman/         # Collections do Postman
 ├── scripts/         # Scripts SQL e utilitários
 ├── src/             # Código fonte
 └── terraform/       # Configurações de infraestrutura IaC
@@ -123,8 +193,8 @@ A documentação da API está disponível através do:
 - Swagger UI (quando a aplicação está em execução):
   http://localhost:8080/swagger-ui/index.html
   
-- Documentação detalhada no Notion:
-  https://www.notion.so/techchallange
+- Collection do Postman:
+  `/postman/11SOAT Pos-tech.postman_collection.json`
 
 ## ⚙️ Configuração do Ambiente de Desenvolvimento
 
