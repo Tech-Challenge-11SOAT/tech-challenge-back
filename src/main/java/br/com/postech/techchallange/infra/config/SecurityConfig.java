@@ -25,7 +25,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
@@ -37,7 +37,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+	AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
 		return configuration.getAuthenticationManager();
 	}
 }
