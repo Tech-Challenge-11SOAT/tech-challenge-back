@@ -12,7 +12,6 @@ Uma aplicação para gerenciamento de pedidos de fast food desenvolvida com Java
 - Swagger/OpenAPI
 - FlyWay (Migrations)
 - JUnit (Testes)
-- Mercado Pago (Integração de Pagamentos)
 - Feign Client (Integração com APIs)
 - Cache (Spring Cache)
 
@@ -45,7 +44,6 @@ src/main/java/br/com/postech/techchallange/
 - Cadastro e autenticação de usuários
 - Gestão de produtos e categorias
 - Sistema de pedidos
-- Integração com gateway de pagamento (Mercado Pago)
 - Fila de pedidos
 - APIs documentadas com Swagger
 
@@ -65,16 +63,7 @@ git clone <URL_DO_REPOSITORIO>
 cd techchallange
 ```
 
-2. Configure as variáveis de ambiente:
-   - Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-```env
-MERCADO_PAGO_ACCESS_TOKEN=seu_token_aqui
-MERCADO_PAGO_USER_ID=seu_user_id
-MERCADO_PAGO_EXTERNAL_POS_ID=seu_pos_id
-MERCADO_PAGO_NOTIFICATION_URL=url_de_notificacao
-```
-
-3. Execute o projeto:
+2. Execute o projeto:
 
 Opção 1 - Via scripts de automação (Recomendado):
 

@@ -20,18 +20,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PedidoPagamentoController {
 
-	private final OrquestradorPedidoPagamentoUseCase useCase;
+    private final OrquestradorPedidoPagamentoUseCase useCase;
 
-	@PostMapping
-	@Operation(summary = "Criar pedido, registrar pagamento e obter link do Mercado Pago")
-	public PedidoPagamentoResponse processar(@RequestBody @Valid PedidoPagamentoRequest request) {
-		return this.useCase.orquestrarPedidoPagamento(request);
-	}
-	
-	@PatchMapping
-	@Operation(summary = "Atualizar status do pedido de pagamento")
-	public Pedido atualizar(@RequestBody @Valid AtualizarPedidoRequest request) {
-		return this.useCase.atualizarPedidoPagamento(request);
-	}
-	
+    @PostMapping
+    @Operation(summary = "Criar pedido, registrar pagamento")
+    public PedidoPagamentoResponse processar(@RequestBody @Valid PedidoPagamentoRequest request) {
+        return this.useCase.orquestrarPedidoPagamento(request);
+    }
+
+    @PatchMapping
+    @Operation(summary = "Atualizar status do pedido de pagamento")
+    public Pedido atualizar(@RequestBody @Valid AtualizarPedidoRequest request) {
+        return this.useCase.atualizarPedidoPagamento(request);
+    }
+
 }

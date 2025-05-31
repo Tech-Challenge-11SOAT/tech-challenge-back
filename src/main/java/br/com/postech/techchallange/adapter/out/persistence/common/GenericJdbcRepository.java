@@ -44,7 +44,11 @@ public abstract class GenericJdbcRepository<T> {
 			this.setStatementParameters(ps, args);
 			return ps;
 		}, keyHolder);
-		return keyHolder.getKey().longValue();
+		Number key = keyHolder.getKey();
+		if (key == null) {
+			throw new IllegalStateException("No key generated for the insert operation.");
+		}
+		return key.longValue();
 	}
 
 	private void setStatementParameters(PreparedStatement ps, Object[] args) throws SQLException {

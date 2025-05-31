@@ -5,6 +5,7 @@ import br.com.postech.techchallange.domain.model.AdminRole;
 import br.com.postech.techchallange.domain.port.out.AdminRoleRepositoryPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -51,7 +52,7 @@ public class AdminRoleRepositoryAdapter extends GenericJdbcRepository<AdminRole>
 
 	private static class AdminRoleRowMapper implements RowMapper<AdminRole> {
 		@Override
-		public AdminRole mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public AdminRole mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
 			return AdminRole.builder()
 					.id(rs.getLong("id"))
 					.nome(rs.getString("nome"))

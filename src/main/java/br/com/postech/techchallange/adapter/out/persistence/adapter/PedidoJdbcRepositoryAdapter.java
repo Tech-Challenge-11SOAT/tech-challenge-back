@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoCompletoResponse;
@@ -118,7 +119,7 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 
 	private static class PedidoRowMapper implements RowMapper<PedidoEntity> {
 		@Override
-		public PedidoEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public PedidoEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
 			PedidoEntity entity = new PedidoEntity();
 			entity.setIdPedido(rs.getLong("id_pedido"));
 			entity.setIdCliente(rs.getLong("id_cliente"));
@@ -131,7 +132,7 @@ public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEnt
 
 	public static class PedidoCompletoResponseRowMapper implements RowMapper<PedidoCompletoResponse> {
 		@Override
-		public PedidoCompletoResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public PedidoCompletoResponse mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
 			return new PedidoCompletoResponse(
 				rs.getLong("id_pedido"),
 				rs.getTimestamp("data_pedido").toLocalDateTime(),
