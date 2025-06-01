@@ -28,4 +28,5 @@ public class PedidoEntity {
 
 	private LocalDateTime dataStatus;
 
+	private Integer filaPedido;
 }

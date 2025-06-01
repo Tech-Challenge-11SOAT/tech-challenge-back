@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
 				HttpStatus.NOT_FOUND.value(),
 				"Recurso não localizado.",
 				ex.getMessage());
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}
 	
 	@ExceptionHandler(InvalidPaymentAmountException.class)

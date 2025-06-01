@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 
 public class FakeCheckoutRequest {
 
-	@NotNull
 	private Long idCliente;
 	@NotNull
 	private List<ItemProduto> produtos;

@@ -24,6 +24,7 @@ import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCa
 import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
 import br.com.postech.techchallange.domain.port.in.OrquestradorPedidoPagamentoUseCase;
 import br.com.postech.techchallange.domain.port.in.PagamentoValidatorPort;
+import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.PedidoProdutoRepositoryPort;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
@@ -41,6 +42,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
     private final PagamentoRepositoryPort pagamentoRepository;
     private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
     private final PagamentoValidatorPort pagamentoValidator;
+    private final GerenciarClienteUseCase gerenciarClienteUseCase;
 
     @Override
     @Transactional
@@ -58,13 +60,20 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
     }
 
     private Pedido criarPedido(PedidoPagamentoRequest request) {
+        if (request.getIdCliente() != null) {
+            if (this.gerenciarClienteUseCase.buscarCliente(request.getIdCliente()) == null) {
+                throw new EntityNotFoundException("Cliente não encontrado para o id: " + request.getIdCliente());
+            }
+        }
         StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus());
+
         Pedido pedido = new Pedido(
                 null,
                 request.getIdCliente(),
                 LocalDateTime.now(),
                 status.getIdStatusPedido(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                null
         );
         return gerenciarPedido.criarPedido(pedido);
     }
@@ -112,6 +121,7 @@ public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPag
                 .idPagamento(pagamento.getId())
                 .metodoPagamento(pagamento.getMetodoPagamento())
                 .status(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus())
+                .numeroPedido(pedido.getFilaPedido())
                 .build();
     }
 

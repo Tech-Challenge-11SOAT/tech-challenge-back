@@ -20,6 +20,9 @@ public class GerenciarPedidoService implements GerenciarPedidoUseCase {
 
 	@Override
 	public Pedido criarPedido(Pedido pedido) {
+		if (pedido.getIdCliente() == null) {
+			pedido.setFilaPedido(this.gerarProximoNumeroFilaPedidoAnonimo());
+		}
 		return this.pedidoRepository.salvar(pedido);
 	}
 
@@ -31,20 +34,38 @@ public class GerenciarPedidoService implements GerenciarPedidoUseCase {
 
 	@Override
 	public List<PedidoCompletoResponse> listarPedidos() {
-		return Optional.ofNullable(this.pedidoRepository.listarTodos())
-				.filter(pedidos -> !pedidos.isEmpty())
+		List<PedidoCompletoResponse> pedidos = Optional.ofNullable(this.pedidoRepository.listarTodos())
+				.filter(list -> !list.isEmpty())
 				.orElseThrow(() -> new EntityNotFoundException("Nenhum pedido encontrado"));
+		return pedidos.stream().map(p -> p.cliente() != null && p.cliente().id() == null
+				? new PedidoCompletoResponse(p.id(), p.dataPedido(), p.dataStatus(), null, p.status(), p.filaPedido())
+				: p).toList();
 	}
-	
+
 	@Override
 	public List<PedidoCompletoResponse> listarPorStatus(Long statusId) {
-		return Optional.ofNullable(this.pedidoRepository.listarPorStatus(statusId))
-				.filter(pedidos -> !pedidos.isEmpty())
-				.orElseThrow(() -> new EntityNotFoundException(String.format("Nenhum pedido encontrado para o status %s", statusId)));
+		List<PedidoCompletoResponse> pedidos = Optional.ofNullable(this.pedidoRepository.listarPorStatus(statusId))
+				.filter(list -> !list.isEmpty()).orElseThrow(() -> new EntityNotFoundException(
+						String.format("Nenhum pedido encontrado para o status %s", statusId)));
+		return pedidos.stream().map(p -> p.cliente() != null && p.cliente().id() == null
+				? new PedidoCompletoResponse(p.id(), p.dataPedido(), p.dataStatus(), null, p.status(), p.filaPedido())
+				: p).toList();
 	}
 
 	@Override
 	public Pedido atualizarPedido(Pedido pedido, Long statusId) {
 		return this.pedidoRepository.atualizar(pedido, statusId);
+	}
+
+	/**
+	 * Gera o próximo número sequencial para filaPedido de clientes anônimos (1 a
+	 * 500).
+	 */
+	private Integer gerarProximoNumeroFilaPedidoAnonimo() {
+		Integer maxFila = pedidoRepository.buscarMaxFilaPedidoAnonimo();
+		if (maxFila == null || maxFila >= 500) {
+			return 1;
+		}
+		return maxFila + 1;
 	}
 }

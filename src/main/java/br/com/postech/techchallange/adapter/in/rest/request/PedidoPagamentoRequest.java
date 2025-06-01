@@ -7,6 +7,7 @@ import lombok.Data;
 
 @Data
 public class PedidoPagamentoRequest {
+
 	@NotNull
 	private Long idCliente;
 
@@ -16,8 +17,11 @@ public class PedidoPagamentoRequest {
 	@NotNull
 	private List<ItemProdutoRequest> produtos;
 
+	private Integer filaPedido;
+
 	@Data
 	public static class ItemProdutoRequest {
+
 		@NotNull
 		private Long idProduto;
 

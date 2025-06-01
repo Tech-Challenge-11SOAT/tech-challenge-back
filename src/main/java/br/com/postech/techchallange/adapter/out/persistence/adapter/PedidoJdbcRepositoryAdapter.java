@@ -22,131 +22,147 @@ import br.com.postech.techchallange.domain.port.out.PedidoRepositoryPort;
 
 @Repository
 public class PedidoJdbcRepositoryAdapter extends GenericJdbcRepository<PedidoEntity> implements PedidoRepositoryPort {
-	
-	private static final Logger logger = LoggerFactory.getLogger(PedidoJdbcRepositoryAdapter.class);
 
+	private static final Logger logger = LoggerFactory.getLogger(PedidoJdbcRepositoryAdapter.class);
+	
 	private static final String SQL_BASE;
 	private static final String LISTAR_PEDIDOS_COMPLETOS;
 	private static final String LISTAR_PEDIDOS_POR_STATUS;
-
+	
 	static {
-		StringBuilder base = new StringBuilder();
-		base.append("SELECT ")
-			.append(	"p.id_pedido, ")
-			.append(	"p.id_cliente, ")
-			.append(	"p.data_pedido, ")
-			.append(	"p.id_status_pedido, ")
-			.append(	"p.data_status, ")
-			.append(	"c.nome_cliente AS cliente_nome, ")
-			.append(	"c.email_cliente AS cliente_email, ")
-			.append(	"s.nome_status AS status_nome ")
-			.append( "FROM pedido p ")
-			.append("JOIN cliente c ON c.id_cliente = p.id_cliente ")
-			.append("JOIN status_pedido s ON s.id_status_pedido = p.id_status_pedido ");
-		SQL_BASE = base.toString();
-
-		LISTAR_PEDIDOS_COMPLETOS = SQL_BASE;
-
-		StringBuilder porStatus = new StringBuilder(SQL_BASE);
-		porStatus.append("WHERE p.id_status_pedido = ? ");
-		LISTAR_PEDIDOS_POR_STATUS = porStatus.toString();
+	    StringBuilder base = new StringBuilder();
+	    base.append("SELECT ")
+	            .append("p.id_pedido, ")
+	            .append("p.id_cliente, ")
+	            .append("p.data_pedido, ")
+	            .append("p.id_status_pedido, ")
+	            .append("p.data_status, ")
+	            .append("p.fila_pedido, ")
+	            .append("c.nome_cliente AS cliente_nome, ")
+	            .append("c.email_cliente AS cliente_email, ")
+	            .append("s.nome_status AS status_nome ")
+	            .append("FROM pedido p ")
+	            .append("LEFT JOIN cliente c ON c.id_cliente = p.id_cliente ")
+	            .append("JOIN status_pedido s ON s.id_status_pedido = p.id_status_pedido ");
+	    SQL_BASE = base.toString();
+	
+	    LISTAR_PEDIDOS_COMPLETOS = SQL_BASE;
+	
+	    StringBuilder porStatus = new StringBuilder(SQL_BASE);
+	    porStatus.append("WHERE p.id_status_pedido = ? ");
+	    LISTAR_PEDIDOS_POR_STATUS = porStatus.toString();
 	}
-
+	
 	private static final String INSERT_PEDIDO = """
-		INSERT INTO pedido (id_cliente, data_pedido, id_status_pedido, data_status)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO pedido (id_cliente, data_pedido, id_status_pedido, data_status, fila_pedido)
+		VALUES (?, ?, ?, ?, ?)
 	""";
-
+	
 	private static final String SELECT_BY_ID = SQL_BASE + " WHERE p.id_pedido = ?";
-
+	
 	private static final String UPDATE_STATUS = """
 		UPDATE pedido SET id_status_pedido = ?, data_status = ? WHERE id_pedido = ?
 	""";
-
+	
 	public PedidoJdbcRepositoryAdapter(JdbcTemplate jdbcTemplate) {
-		super(jdbcTemplate, new PedidoRowMapper());
+	    super(jdbcTemplate, new PedidoRowMapper());
 	}
-
+	
 	@Override
 	public Pedido salvar(Pedido pedido) {
-		logger.info("Iniciando método para salvar pedido: {} || Insert: {}", pedido.toString(), INSERT_PEDIDO);
-		
-		Long idGerado = super.insertAndReturnId(
-			INSERT_PEDIDO,
-			pedido.getIdCliente(),
-			pedido.getDataPedido(),
-			pedido.getIdStatusPedido(),
-			pedido.getDataStatus()
-		);
-		return this.buscarPorId(idGerado).orElseThrow();
+	    logger.info("Iniciando método para salvar pedido: {} || Insert: {}", pedido.toString(), INSERT_PEDIDO);
+	
+	    Long idGerado = super.insertAndReturnId(
+	            INSERT_PEDIDO,
+	            pedido.getIdCliente(),
+	            pedido.getDataPedido(),
+	            pedido.getIdStatusPedido(),
+	            pedido.getDataStatus(),
+	            pedido.getFilaPedido()
+	    );
+	    return this.buscarPorId(idGerado).orElseThrow();
 	}
-
+	
 	@Override
 	public Optional<Pedido> buscarPorId(Long id) {
-		logger.info("Iniciando método para buscar pedido por id: {} || Select: {}", id, SELECT_BY_ID);
-		
-		try {
-			return Optional.ofNullable(PedidoMapper.toDomain(super.queryOne(SELECT_BY_ID, id)));
-		} catch (Exception e) {
-			return Optional.empty();
-		}
+	    logger.info("Iniciando método para buscar pedido por id: {} || Select: {}", id, SELECT_BY_ID);
+	
+	    try {
+	        return Optional.ofNullable(PedidoMapper.toDomain(super.queryOne(SELECT_BY_ID, id)));
+	    } catch (Exception e) {
+	        return Optional.empty();
+	    }
 	}
-
+	
 	@Override
 	public List<PedidoCompletoResponse> listarTodos() {
-		logger.info("Iniciando método para buscar todos os pedido - Select: {}", LISTAR_PEDIDOS_COMPLETOS);
-		
-		RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
-		return super.jdbcTemplate.query(LISTAR_PEDIDOS_COMPLETOS, rowMapper);
+	    logger.info("Iniciando método para buscar todos os pedido - Select: {}", LISTAR_PEDIDOS_COMPLETOS);
+	
+	    RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
+	    return super.jdbcTemplate.query(LISTAR_PEDIDOS_COMPLETOS, rowMapper);
 	}
 	
 	@Override
 	public List<PedidoCompletoResponse> listarPorStatus(Long statusId) {
-		logger.info("Iniciando método para buscar os pedido por status: {} - Select: {}", statusId, LISTAR_PEDIDOS_POR_STATUS);
-		
-		RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
-		return super.jdbcTemplate.query(LISTAR_PEDIDOS_POR_STATUS, rowMapper, statusId);
+	    logger.info("Iniciando método para buscar os pedido por status: {} - Select: {}", statusId, LISTAR_PEDIDOS_POR_STATUS);
+	
+	    RowMapper<PedidoCompletoResponse> rowMapper = new PedidoCompletoResponseRowMapper();
+	    return super.jdbcTemplate.query(LISTAR_PEDIDOS_POR_STATUS, rowMapper, statusId);
 	}
-
+	
 	@Override
 	public Pedido atualizar(Pedido pedido, Long statusId) {
-		logger.info("Iniciando método para atualizar pedido: {} || Update: {}", pedido.toString(), UPDATE_STATUS);
-		
-		LocalDateTime agora = LocalDateTime.now();
-		super.executeUpdate(UPDATE_STATUS, statusId, agora, pedido.getId());
-		return this.buscarPorId(pedido.getId()).orElseThrow();
+	    logger.info("Iniciando método para atualizar pedido: {} || Update: {}", pedido.toString(), UPDATE_STATUS);
+	
+	    LocalDateTime agora = LocalDateTime.now();
+	    super.executeUpdate(UPDATE_STATUS, statusId, agora, pedido.getId());
+	    return this.buscarPorId(pedido.getId()).orElseThrow();
 	}
-
+	
+	@Override
+	public Integer buscarMaxFilaPedidoAnonimo() {
+	    Integer max = super.jdbcTemplate.queryForObject("SELECT MAX(fila_pedido) FROM pedido WHERE id_cliente IS NULL", Integer.class);
+	    return max != null ? max : 0;
+	}
+	
 	private static class PedidoRowMapper implements RowMapper<PedidoEntity> {
-		@Override
-		public PedidoEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
-			PedidoEntity entity = new PedidoEntity();
-			entity.setIdPedido(rs.getLong("id_pedido"));
-			entity.setIdCliente(rs.getLong("id_cliente"));
-			entity.setDataPedido(rs.getTimestamp("data_pedido").toLocalDateTime());
-			entity.setIdStatusPedido(rs.getLong("id_status_pedido"));
-			entity.setDataStatus(rs.getTimestamp("data_status").toLocalDateTime());
-			return entity;
-		}
+	
+	    @Override
+	    public PedidoEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
+	        PedidoEntity entity = new PedidoEntity();
+	        entity.setIdPedido(rs.getLong("id_pedido"));
+	        entity.setIdCliente(rs.getLong("id_cliente"));
+	        entity.setDataPedido(rs.getTimestamp("data_pedido").toLocalDateTime());
+	        entity.setIdStatusPedido(rs.getLong("id_status_pedido"));
+	        entity.setDataStatus(rs.getTimestamp("data_status").toLocalDateTime());
+	        try {
+	            entity.setFilaPedido(rs.getObject("fila_pedido") != null ? rs.getInt("fila_pedido") : null);
+	        } catch (SQLException e) {
+	            entity.setFilaPedido(null);
+	        }
+	        return entity;
+	    }
 	}
-
+	
 	public static class PedidoCompletoResponseRowMapper implements RowMapper<PedidoCompletoResponse> {
-		@Override
-		public PedidoCompletoResponse mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
-			return new PedidoCompletoResponse(
-				rs.getLong("id_pedido"),
-				rs.getTimestamp("data_pedido").toLocalDateTime(),
-				rs.getTimestamp("data_status").toLocalDateTime(),
-				new PedidoCompletoResponse.Cliente(
-					rs.getLong("id_cliente"),
-					rs.getString("cliente_nome"),
-					rs.getString("cliente_email")
-				),
-				new PedidoCompletoResponse.StatusPedido(
-					rs.getLong("id_status_pedido"),
-					rs.getString("status_nome")
-				)
-			);
-		}
+	
+	    @Override
+	    public PedidoCompletoResponse mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
+	        return new PedidoCompletoResponse(
+	                rs.getLong("id_pedido"),
+	                rs.getTimestamp("data_pedido").toLocalDateTime(),
+	                rs.getTimestamp("data_status").toLocalDateTime(),
+	                new PedidoCompletoResponse.Cliente(
+	                        rs.getObject("id_cliente") != null ? rs.getLong("id_cliente") : null,
+	                        rs.getString("cliente_nome"),
+	                        rs.getString("cliente_email")
+	                ),
+	                new PedidoCompletoResponse.StatusPedido(
+	                        rs.getLong("id_status_pedido"),
+	                        rs.getString("status_nome")
+	                ),
+	                rs.getObject("fila_pedido") != null ? rs.getLong("fila_pedido") : null
+	        );
+	    }
 	}
 }

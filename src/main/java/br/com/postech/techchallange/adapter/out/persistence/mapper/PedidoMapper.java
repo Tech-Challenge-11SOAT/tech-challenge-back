@@ -6,13 +6,13 @@ import br.com.postech.techchallange.adapter.out.persistence.entity.PedidoEntity;
 public class PedidoMapper {
 
 	public static Pedido toDomain(PedidoEntity entity) {
-		return new Pedido(
-				entity.getIdPedido(), 
+		return new Pedido(entity.getIdPedido(),
 				entity.getIdCliente(),
 				entity.getDataPedido(),
 				entity.getIdStatusPedido(),
-				entity.getDataStatus()
-				);
+				entity.getDataStatus(),
+				entity.getFilaPedido()
+		);
 	}
 
 	public static PedidoEntity toEntity(Pedido pedido) {
@@ -22,6 +22,7 @@ public class PedidoMapper {
 		entity.setDataPedido(pedido.getDataPedido());
 		entity.setIdStatusPedido(pedido.getIdStatusPedido());
 		entity.setDataStatus(pedido.getDataStatus());
+		entity.setFilaPedido(pedido.getFilaPedido());
 		return entity;
 	}
 }

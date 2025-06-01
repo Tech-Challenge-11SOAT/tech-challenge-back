@@ -29,22 +29,24 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 
 	private PedidoPagamentoRequest converterFakeCheckoutParaPedidoPagamento(FakeCheckoutRequest request) {
 		PedidoPagamentoRequest pagamentoRequest = new PedidoPagamentoRequest();
-		pagamentoRequest.setIdCliente(request.getIdCliente());
 
+		if (request.getIdCliente() != null) {
+			pagamentoRequest.setIdCliente(request.getIdCliente());
+		}
 		List<PedidoPagamentoRequest.ItemProdutoRequest> produtosConvertidos = request.getProdutos().stream()
 				.map(prod -> {
 					PedidoPagamentoRequest.ItemProdutoRequest item = new PedidoPagamentoRequest.ItemProdutoRequest();
 					item.setIdProduto(prod.getIdProduto());
 					item.setQuantidade(prod.getQuantidade());
 					return item;
-				})
-				.collect(java.util.stream.Collectors.toList());
+				}).collect(java.util.stream.Collectors.toList());
 		pagamentoRequest.setProdutos(produtosConvertidos);
 		return pagamentoRequest;
 	}
 
 	public void enviarParaFila(FakeCheckoutRequest request) {
 		// Simula envio para fila
-		log.info("Fake checkout enviado para fila: Cliente={}, Produtos={}", request.getIdCliente(), request.getProdutos());
+		log.info("Fake checkout enviado para fila: Cliente={}, Produtos={}", request.getIdCliente(),
+				request.getProdutos());
 	}
 }
