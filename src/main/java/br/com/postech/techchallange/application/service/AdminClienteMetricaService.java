@@ -25,7 +25,8 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	private final br.com.postech.techchallange.domain.port.out.PedidoProdutoRepositoryPort pedidoProdutoRepositoryPort;
 
 	@Override
-	public ClienteMetricaResponse obterMetricasCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+	public ClienteMetricaResponse obterMetricasCliente(Long idCliente, LocalDateTime dataInicio,
+			LocalDateTime dataFim) {
 		List<Pedido> pedidos;
 		Cliente cliente = null;
 		if (idCliente == null) {
@@ -75,7 +76,8 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	}
 
 	@Override
-	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio,
+			LocalDateTime dataFim) {
 		List<Pedido> pedidos;
 		if (idCliente == null) {
 			pedidos = pedidoRepository.listarPorCliente(null);
@@ -112,14 +114,8 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 		List<ClienteMetricaResponse.PedidoResumo> pedidos = listarPedidosCliente(idCliente, dataInicio, dataFim);
 		StringBuilder csv = new StringBuilder();
 		csv.append("ID Pedido,Data Pedido,Valor Total,Status\n");
-		pedidos.forEach(p -> csv.append(p.getIdPedido())
-				.append(",")
-				.append(p.getDataPedido())
-				.append(",")
-				.append(p.getValorTotal())
-				.append(",")
-				.append(p.getStatus())
-				.append("\n"));
+		pedidos.forEach(p -> csv.append(p.getIdPedido()).append(",").append(p.getDataPedido()).append(",")
+				.append(p.getValorTotal()).append(",").append(p.getStatus()).append("\n"));
 		return csv.toString();
 	}
 
