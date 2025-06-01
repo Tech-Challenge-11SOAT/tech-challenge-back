@@ -106,6 +106,11 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 	public List<AdminUser> listar() {
 		return userRepository.listar().stream()
 				.map(AdminUser::semSenha)
+				.map(user -> {
+					List<AdminRole> roles = adminRoleRepository.listarRolesPorAdminId(user.getId());
+					user.setRoles(roles);
+					return user;
+				})
 				.toList();
 	}
 	
