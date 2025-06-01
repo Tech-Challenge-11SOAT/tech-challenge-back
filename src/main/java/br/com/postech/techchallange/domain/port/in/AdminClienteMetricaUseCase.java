@@ -15,4 +15,7 @@ public interface AdminClienteMetricaUseCase {
 
 	List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, java.time.LocalDateTime dataInicio,
 			java.time.LocalDateTime dataFim);
+
+	String exportarPedidosClienteCsv(Long idCliente, java.time.LocalDateTime dataInicio,
+			java.time.LocalDateTime dataFim);
 }

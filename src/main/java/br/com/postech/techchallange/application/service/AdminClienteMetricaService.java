@@ -44,15 +44,13 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 					.collect(Collectors.toList());
 		}
 		int totalPedidos = pedidos.size();
-		BigDecimal totalGasto = pedidos.stream().map(p -> calcularValorTotalPedido(p.getId()))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		BigDecimal totalGasto = pedidos.stream().map(p -> calcularValorTotalPedido(p.getId())).reduce(BigDecimal.ZERO,
+				BigDecimal::add);
 
-		LocalDateTime dataUltimoPedido = pedidos.stream()
-				.max(Comparator.comparing(Pedido::getDataPedido))
+		LocalDateTime dataUltimoPedido = pedidos.stream().max(Comparator.comparing(Pedido::getDataPedido))
 				.map(Pedido::getDataPedido).orElse(null);
 
-		Long idUltimoPedido = pedidos.stream().max(Comparator.comparing(Pedido::getDataPedido))
-				.map(Pedido::getId)
+		Long idUltimoPedido = pedidos.stream().max(Comparator.comparing(Pedido::getDataPedido)).map(Pedido::getId)
 				.orElse(null);
 
 		List<ClienteMetricaResponse.PedidoResumo> pedidosResumo = pedidos.stream().map(p -> {
@@ -66,11 +64,8 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 		}).collect(Collectors.toList());
 		return ClienteMetricaResponse.builder().idCliente(cliente != null ? cliente.getId() : null)
 				.nome(cliente != null ? cliente.getNomeCliente() : "Não identificado")
-				.email(cliente != null ? cliente.getEmailCliente() : null)
-				.totalPedidos(totalPedidos)
-				.totalGasto(totalGasto)
-				.dataUltimoPedido(dataUltimoPedido)
-				.idUltimoPedido(idUltimoPedido)
+				.email(cliente != null ? cliente.getEmailCliente() : null).totalPedidos(totalPedidos)
+				.totalGasto(totalGasto).dataUltimoPedido(dataUltimoPedido).idUltimoPedido(idUltimoPedido)
 				.pedidos(pedidosResumo).build();
 	}
 
@@ -80,8 +75,7 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	}
 
 	@Override
-	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio,
-			LocalDateTime dataFim) {
+	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
 		List<Pedido> pedidos;
 		if (idCliente == null) {
 			pedidos = pedidoRepository.listarPorCliente(null);
@@ -111,6 +105,22 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	@Override
 	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente) {
 		return listarPedidosCliente(idCliente, null, null);
+	}
+
+	@Override
+	public String exportarPedidosClienteCsv(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+		List<ClienteMetricaResponse.PedidoResumo> pedidos = listarPedidosCliente(idCliente, dataInicio, dataFim);
+		StringBuilder csv = new StringBuilder();
+		csv.append("ID Pedido,Data Pedido,Valor Total,Status\n");
+		pedidos.forEach(p -> csv.append(p.getIdPedido())
+				.append(",")
+				.append(p.getDataPedido())
+				.append(",")
+				.append(p.getValorTotal())
+				.append(",")
+				.append(p.getStatus())
+				.append("\n"));
+		return csv.toString();
 	}
 
 	private BigDecimal calcularValorTotalPedido(Long idPedido) {
