@@ -23,4 +23,6 @@ public interface PedidoRepositoryPort {
 	 * identificados)
 	 */
 	Integer buscarMaxFilaPedidoAnonimo();
+
+	List<Pedido> listarPorCliente(Long idCliente);
 }
