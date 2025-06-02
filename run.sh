@@ -44,7 +44,7 @@ echo -e "${BLUE}📦 Baixando dependências e construindo a aplicação...${NC}"
 # Tentar até 3 vezes em caso de falha
 retries=0
 while [ $retries -lt 3 ]; do
-    if docker-compose up --build -d; then
+    if docker compose up --build -d; then
         break
     else
         retries=$((retries + 1))
@@ -85,5 +85,5 @@ done
 
 echo -e "${RED}❌ Timeout ao aguardar a aplicação inicializar${NC}"
 echo -e "${RED}❌ Erro ao iniciar o ambiente${NC}"
-docker-compose logs app
+docker compose logs app
 exit 1

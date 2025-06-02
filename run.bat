@@ -25,7 +25,7 @@ if errorlevel 1 (
 :: Parar e remover containers e volumes anteriores
 echo.
 echo 🔁 Parando containers antigos e removendo volumes...
-docker-compose down -v
+docker compose down -v
 
 :: Verificar conectividade com Maven Central
 echo.
@@ -47,7 +47,7 @@ echo.
 :: Tentar até 3 vezes em caso de falha
 set /a retries=0
 :build_retry
-docker-compose up --build -d
+docker compose up --build -d
 if %errorlevel% neq 0 (    set /a retries+=1
     if !retries! lss 3 (
         echo ⚠️ Falha no build. Tentativa !retries! de 3...
@@ -89,7 +89,7 @@ goto :end
 
 :error
 echo ❌ Erro ao iniciar o ambiente
-docker-compose logs app
+docker compose logs app
 goto :end
 
 :end
