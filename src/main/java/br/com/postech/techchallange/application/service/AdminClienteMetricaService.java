@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import br.com.postech.techchallange.adapter.in.rest.response.ClienteMetricaResponse;
+import br.com.postech.techchallange.adapter.in.rest.response.ClienteRankingDTO;
 import br.com.postech.techchallange.adapter.in.rest.response.VendaProdutoCategoriaDTO;
 import br.com.postech.techchallange.domain.model.Categoria;
 import br.com.postech.techchallange.domain.model.Cliente;
@@ -171,18 +172,17 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	private List<Pedido> filtrarPedidosPorPeriodo(List<Pedido> pedidos, LocalDateTime dataInicio,
 			LocalDateTime dataFim) {
 		return pedidos.stream().filter(
-				p -> (dataInicio == null || (p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio)))
-						&& (dataFim == null || (p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))))
+				pedido -> (dataInicio == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio)))
+						&& (dataFim == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))))
 				.collect(Collectors.toList());
 	}
 
-	private boolean filtrarPorProdutoECategoria(br.com.postech.techchallange.domain.model.PedidoProduto pp,
-			Long idProduto, Long idCategoria) {
-		if (idProduto != null && !pp.getIdProduto().equals(idProduto)) {
+	private boolean filtrarPorProdutoECategoria(br.com.postech.techchallange.domain.model.PedidoProduto pedidoProduto, Long idProduto, Long idCategoria) {
+		if (idProduto != null && !pedidoProduto.getIdProduto().equals(idProduto)) {
 			return false;
 		}
 		if (idCategoria != null) {
-			Produto prod = produtoRepositoryPort.buscarPorId(pp.getIdProduto()).orElse(null);
+			Produto prod = produtoRepositoryPort.buscarPorId(pedidoProduto.getIdProduto()).orElse(null);
 			if (prod == null || prod.getIdCategoria() == null || !prod.getIdCategoria().equals(idCategoria)) {
 				return false;
 			}
@@ -221,20 +221,34 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	}
 
 	@Override
-	public Object rankingClientesMaisAtivos(LocalDateTime dataInicio, LocalDateTime dataFim, int limit) {
+	public List<ClienteRankingDTO> rankingClientesMaisAtivos(LocalDateTime dataInicio, LocalDateTime dataFim, int limit) {
 		List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
 		if (dataInicio != null) {
-			pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
+			pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio))
 					.collect(Collectors.toList());
 		}
 		if (dataFim != null) {
-			pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
+			pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))
 					.collect(Collectors.toList());
 		}
 
-		var ranking = pedidos.stream().filter(p -> p.getIdCliente() != null)
-				.collect(Collectors.groupingBy(Pedido::getIdCliente, Collectors.counting())).entrySet().stream()
-				.sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())).limit(limit)
+		var ranking = pedidos.stream()
+				.filter(pedido -> pedido.getIdCliente() != null)
+				.collect(Collectors.groupingBy(Pedido::getIdCliente, Collectors.counting()))
+				.entrySet().stream()
+				.sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+				.limit(limit)
+				.map(entry -> {
+					Long idCliente = entry.getKey();
+					Long totalPedidos = entry.getValue();
+					var cliente = clienteRepository.buscarPorId(idCliente).orElse(null);
+					return new ClienteRankingDTO(
+						idCliente,
+						cliente != null ? cliente.getNomeCliente() : null,
+						cliente != null ? cliente.getEmailCliente() : null,
+						totalPedidos
+					);
+				})
 				.collect(Collectors.toList());
 		return ranking;
 	}

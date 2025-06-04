@@ -13,8 +13,7 @@ public class VendaProdutoCategoriaDTO {
     public BigDecimal valorTotal;
     public LocalDateTime dataPedido;
 
-    public VendaProdutoCategoriaDTO(Long idProduto, String nomeProduto, Long idCategoria, String nomeCategoria,
-            Integer quantidade, BigDecimal valorTotal, LocalDateTime dataPedido) {
+    public VendaProdutoCategoriaDTO(Long idProduto, String nomeProduto, Long idCategoria, String nomeCategoria, Integer quantidade, BigDecimal valorTotal, LocalDateTime dataPedido) {
         this.idProduto = idProduto;
         this.nomeProduto = nomeProduto;
         this.idCategoria = idCategoria;

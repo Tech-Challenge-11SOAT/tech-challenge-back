@@ -1,12 +1,18 @@
 package br.com.postech.techchallange.domain.port.in;
 
-import br.com.postech.techchallange.domain.model.Pagamento;
 import java.util.List;
 
+import br.com.postech.techchallange.domain.model.Pagamento;
+
 public interface GerenciarPagamentoUseCase {
-	Pagamento pagar(Pagamento pagamento);
 
-	Pagamento buscarPagamento(Long id);
+    Pagamento pagar(Pagamento pagamento);
 
-	List<Pagamento> listarPagamentos();
+    Pagamento buscarPagamento(Long id);
+
+    Pagamento buscarPagamentoPorPedido(Long idPedido);
+
+    void processarWebhookPagamento(br.com.postech.techchallange.adapter.in.rest.request.WebhookPagamentoRequest request);
+
+    List<Pagamento> listarPagamentos();
 }
