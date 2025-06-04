@@ -132,4 +132,31 @@ public class AdminCustomersController {
 		headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pedidos_anonimos.csv");
 		return ResponseEntity.ok().headers(headers).body(csvBytes);
 	}
+
+	@Operation(summary = "Relatório de vendas por produto/categoria/período", description = "Retorna o total vendido e quantidade por produto e categoria, filtrando por período.")
+	@GetMapping("reports/sales")
+	public ResponseEntity<?> getSalesReport(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim,
+			@RequestParam(required = false) Long idProduto, @RequestParam(required = false) Long idCategoria) {
+		return ResponseEntity.ok(adminClienteMetricaUseCase.relatorioVendasPorProdutoCategoria(dataInicio, dataFim,
+				idProduto, idCategoria));
+	}
+
+	@Operation(summary = "Ranking de clientes mais ativos", description = "Retorna o ranking dos clientes que mais fizeram pedidos no período.")
+	@GetMapping("reports/top-customers")
+	public ResponseEntity<?> getTopCustomers(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim,
+			@RequestParam(defaultValue = "10") int limit) {
+		return ResponseEntity.ok(adminClienteMetricaUseCase.rankingClientesMaisAtivos(dataInicio, dataFim, limit));
+	}
+
+	@Operation(summary = "Relatório de conversão de clientes anônimos para identificados", description = "Mostra quantos clientes anônimos se tornaram identificados em determinado período.")
+	@GetMapping("reports/conversion")
+	public ResponseEntity<?> getConversionReport(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
+		return ResponseEntity.ok(adminClienteMetricaUseCase.relatorioConversaoClientes(dataInicio, dataFim));
+	}
 }

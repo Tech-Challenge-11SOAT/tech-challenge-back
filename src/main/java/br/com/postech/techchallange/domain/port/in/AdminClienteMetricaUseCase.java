@@ -6,16 +6,22 @@ import java.util.List;
 
 public interface AdminClienteMetricaUseCase {
 
-	ClienteMetricaResponse obterMetricasCliente(Long idCliente);
+    ClienteMetricaResponse obterMetricasCliente(Long idCliente);
 
-	List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente);
+    List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente);
 
-	ClienteMetricaResponse obterMetricasCliente(Long idCliente, java.time.LocalDateTime dataInicio,
-			java.time.LocalDateTime dataFim);
+    ClienteMetricaResponse obterMetricasCliente(Long idCliente, java.time.LocalDateTime dataInicio,
+            java.time.LocalDateTime dataFim);
 
-	List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, java.time.LocalDateTime dataInicio,
-			java.time.LocalDateTime dataFim);
+    List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, java.time.LocalDateTime dataInicio,
+            java.time.LocalDateTime dataFim);
 
-	String exportarPedidosClienteCsv(Long idCliente, java.time.LocalDateTime dataInicio,
-			java.time.LocalDateTime dataFim);
+    String exportarPedidosClienteCsv(Long idCliente, java.time.LocalDateTime dataInicio,
+            java.time.LocalDateTime dataFim);
+
+    Object relatorioVendasPorProdutoCategoria(java.time.LocalDateTime dataInicio, java.time.LocalDateTime dataFim, Long idProduto, Long idCategoria);
+
+    Object rankingClientesMaisAtivos(java.time.LocalDateTime dataInicio, java.time.LocalDateTime dataFim, int limit);
+
+    Object relatorioConversaoClientes(java.time.LocalDateTime dataInicio, java.time.LocalDateTime dataFim);
 }
