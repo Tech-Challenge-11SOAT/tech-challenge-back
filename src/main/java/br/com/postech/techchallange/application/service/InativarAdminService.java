@@ -12,14 +12,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InativarAdminService implements ToggleAdminUseCase {
 
-	private final AdminUserRepositoryPort adminUserRepository;
+    private final AdminUserRepositoryPort adminUserRepository;
 
-	@Override
-	public void toggle(Long idAdmin) {
-		AdminUser admin = adminUserRepository.buscarPorId(idAdmin)
-				.orElseThrow(() -> new BusinessException("Administrador não encontrado"));
+    @Override
+    public void toggle(Long idAdmin) {
+        if (idAdmin == null) {
+            throw new BusinessException("ID do administrador não pode ser nulo");
+        }
 
-		admin.setAtivo(!admin.getAtivo());
-		this.adminUserRepository.salvar(admin);
-	}
+        AdminUser admin = adminUserRepository.buscarPorId(idAdmin)
+                .orElseThrow(() -> new BusinessException("Administrador não encontrado"));
+
+        admin.setAtivo(!admin.getAtivo());
+        this.adminUserRepository.salvar(admin);
+    }
 }
