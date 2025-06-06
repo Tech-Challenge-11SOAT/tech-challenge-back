@@ -17,6 +17,16 @@ public class LogAdminActionService implements LogAdminActionUseCase {
 
     @Override
     public void registrar(Long idAdmin, String acao, String recursoAfetado, Long idRecursoAfetado) {
+        if (idAdmin == null) {
+            throw new IllegalArgumentException("ID do admin não pode ser nulo");
+        }
+        if (acao == null) {
+            throw new IllegalArgumentException("Ação não pode ser nula");
+        }
+        if (recursoAfetado == null) {
+            throw new IllegalArgumentException("Recurso afetado não pode ser nulo");
+        }
+
         AdminLogAcao log = AdminLogAcao.builder()
                 .idAdmin(idAdmin)
                 .acao(acao)
