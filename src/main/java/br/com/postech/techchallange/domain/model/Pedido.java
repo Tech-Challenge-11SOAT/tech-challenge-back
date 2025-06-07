@@ -19,6 +19,8 @@ public class Pedido {
 		this.dataStatus = dataStatus;
 		this.filaPedido = filaPedido;
 	}
+	
+	public Pedido() {}
 
 	public Long getId() {
 		return id;

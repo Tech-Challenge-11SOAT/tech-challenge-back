@@ -23,6 +23,8 @@ public class Produto {
 		this.idImagemUrl = idImagemUrl;
 		this.idCategoria = idCategoria;
 	}
+	
+	public Produto() {}
 
 	public Long getId() {
 		return id;

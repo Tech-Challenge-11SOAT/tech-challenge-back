@@ -17,6 +17,8 @@ public class Cliente {
         this.emailCliente = emailCliente;
         this.cpfCliente = cpfCliente;
     }
+    
+    public Cliente() {}
 
     //Getters ---------------------------------------------------
 

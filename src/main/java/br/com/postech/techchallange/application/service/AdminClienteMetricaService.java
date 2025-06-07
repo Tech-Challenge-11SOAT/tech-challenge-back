@@ -254,7 +254,7 @@ public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 	}
 
 	@Override
-	public Object relatorioConversaoClientes(LocalDateTime dataInicio, LocalDateTime dataFim) {
+	public Map<String, Object> relatorioConversaoClientes(LocalDateTime dataInicio, LocalDateTime dataFim) {
 		List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
 		if (dataInicio != null) {
 			pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
