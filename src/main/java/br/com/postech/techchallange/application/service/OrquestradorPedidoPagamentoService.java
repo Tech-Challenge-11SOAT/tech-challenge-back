@@ -2,6 +2,7 @@ package br.com.postech.techchallange.application.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,136 +36,158 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrquestradorPedidoPagamentoService implements OrquestradorPedidoPagamentoUseCase {
 
-	private final GerenciarPedidoUseCase gerenciarPedido;
-	private final GerenciarStatusPedidoUseCase gerenciarStatusPedido;
-	private final PedidoProdutoRepositoryPort pedidoProdutoRepository;
-	private final ProdutoRepositoryPort produtoRepository;
-	private final PagamentoRepositoryPort pagamentoRepository;
-	private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
-	private final PagamentoValidatorPort pagamentoValidator;
-	private final GerenciarClienteUseCase gerenciarClienteUseCase;
+    private final GerenciarPedidoUseCase gerenciarPedido;
+    private final GerenciarStatusPedidoUseCase gerenciarStatusPedido;
+    private final PedidoProdutoRepositoryPort pedidoProdutoRepository;
+    private final ProdutoRepositoryPort produtoRepository;
+    private final PagamentoRepositoryPort pagamentoRepository;
+    private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
+    private final PagamentoValidatorPort pagamentoValidator;
+    private final GerenciarClienteUseCase gerenciarClienteUseCase;
 
-	@Override
-	@Transactional
-	public PedidoPagamentoResponse orquestrarPedidoPagamento(PedidoPagamentoRequest request) {
-		Pedido pedido = this.criarPedido(request);
-		List<PedidoProduto> produtos = this.processarProdutosPedido(request, pedido);
+    @Override
+    @Transactional
+    public PedidoPagamentoResponse orquestrarPedidoPagamento(PedidoPagamentoRequest request) {
+        validarRequest(request);
+        Pedido pedido = this.criarPedido(request);
+        List<PedidoProduto> produtos = this.processarProdutosPedido(request, pedido);
 
-		BigDecimal totalCalculado = this.calcularTotalPedido(produtos);
-		Pagamento pagamento = this.criarPagamento(request, pedido, totalCalculado);
+        BigDecimal totalCalculado = this.calcularTotalPedido(produtos);
+        Pagamento pagamento = this.criarPagamento(request, pedido, totalCalculado);
 
-		this.pagamentoValidator.validar(pedido, pagamento);
-		pagamento = this.pagamentoRepository.salvar(pagamento);
+        this.pagamentoValidator.validar(pedido, pagamento);
+        pagamento = this.pagamentoRepository.salvar(pagamento);
 
-		return this.construirPedidoPagamentoResponse(pedido, pagamento);
-	}
+        return this.construirPedidoPagamentoResponse(pedido, pagamento);
+    }
 
-	private Pedido criarPedido(PedidoPagamentoRequest request) {
-		if (request.getIdCliente() != null) {
-			if (this.gerenciarClienteUseCase.buscarCliente(request.getIdCliente()) == null) {
-				throw new EntityNotFoundException("Cliente não encontrado para o id: " + request.getIdCliente());
-			}
-		}
-		StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus());
+    private void validarRequest(PedidoPagamentoRequest request) {
+        if (request.getProdutos() == null || request.getProdutos().isEmpty()) {
+            throw new IllegalArgumentException("Lista de produtos não pode estar vazia");
+        }
 
-		Pedido pedido = new Pedido(
-				null,
-				request.getIdCliente(),
-				LocalDateTime.now(),
-				status.getIdStatusPedido(),
-				LocalDateTime.now(),
-				null
-		);
+        for (PedidoPagamentoRequest.ItemProdutoRequest produto : request.getProdutos()) {
+            if (produto.getQuantidade() <= 0) {
+                throw new IllegalArgumentException("Quantidade de produtos deve ser maior que zero");
+            }
+        }
 
-		return gerenciarPedido.criarPedido(pedido);
-	}
+        if (request.getMetodoPagamento() == null
+                || !Arrays.asList("PIX", "CARTAO", "DINHEIRO").contains(request.getMetodoPagamento().toUpperCase())) {
+            throw new IllegalArgumentException("Método de pagamento inválido");
+        }
+    }
 
-	private List<PedidoProduto> processarProdutosPedido(PedidoPagamentoRequest request, Pedido pedido) {
-		return request.getProdutos().stream().map(prod -> {
-			Produto produto = produtoRepository.buscarPorId(prod.getIdProduto())
-					.orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+    private Pedido criarPedido(PedidoPagamentoRequest request) {
+        if (request.getIdCliente() != null) {
+            if (this.gerenciarClienteUseCase.buscarCliente(request.getIdCliente()) == null) {
+                throw new EntityNotFoundException("Cliente não encontrado para o id: " + request.getIdCliente());
+            }
+        }
+        StatusPedido status = gerenciarStatusPedido.buscarStatusPedidoPorNome(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus());
 
-			PedidoProduto pedidoProduto = new PedidoProduto(
-					null,
-					pedido.getId(),
-					prod.getIdProduto(),
-					prod.getQuantidade(),
-					produto.getPreco()
-			);
+        Pedido pedido = new Pedido(
+                null,
+                request.getIdCliente(),
+                LocalDateTime.now(),
+                status.getIdStatusPedido(),
+                LocalDateTime.now(),
+                null
+        );
 
-			this.pedidoProdutoRepository.salvarItemPedido(pedidoProduto);
-			return pedidoProduto;
-		}).collect(Collectors.toList());
-	}
+        return gerenciarPedido.criarPedido(pedido);
+    }
 
-	private BigDecimal calcularTotalPedido(List<PedidoProduto> produtos) {
-		return produtos.stream().map(prod -> prod.getPrecoUnitario()
-				.multiply(BigDecimal.valueOf(prod.getQuantidade())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
+    private List<PedidoProduto> processarProdutosPedido(PedidoPagamentoRequest request, Pedido pedido) {
+        return request.getProdutos().stream().map(prod -> {
+            Produto produto = produtoRepository.buscarPorId(prod.getIdProduto())
+                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
 
-	private Pagamento criarPagamento(PedidoPagamentoRequest request, Pedido pedido, BigDecimal totalCalculado) {
-		Long idStatusPagamento = this.gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
-				.getIdStatusPagamento();
+            PedidoProduto pedidoProduto = new PedidoProduto(
+                    null,
+                    pedido.getId(),
+                    prod.getIdProduto(),
+                    prod.getQuantidade(),
+                    produto.getPreco()
+            );
 
-		return Pagamento.builder()
-				.idPedido(pedido.getId())
-				.metodoPagamento(request.getMetodoPagamento())
-				.valorTotal(totalCalculado)
-				.dataPagamento(LocalDateTime.now())
-				.idStatusPagamento(idStatusPagamento)
-				.build();
-	}
+            this.pedidoProdutoRepository.salvarItemPedido(pedidoProduto);
+            return pedidoProduto;
+        }).collect(Collectors.toList());
+    }
 
-	private PedidoPagamentoResponse construirPedidoPagamentoResponse(Pedido pedido, Pagamento pagamento) {
-		return PedidoPagamentoResponse.builder()
-				.idPedido(pedido.getId())
-				.idPagamento(pagamento.getId())
-				.metodoPagamento(pagamento.getMetodoPagamento())
-				.status(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus())
-				.numeroPedido(pedido.getFilaPedido())
-				.build();
-	}
+    private BigDecimal calcularTotalPedido(List<PedidoProduto> produtos) {
+        return produtos.stream().map(prod -> prod.getPrecoUnitario()
+                .multiply(BigDecimal.valueOf(prod.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-	@Override
-	public Pedido atualizarPedidoPagamento(AtualizarPedidoRequest request) {
-		Pedido pedido = this.gerenciarPedido.buscarPedido(request.getId());
-		if (Objects.isNull(pedido)) {
-			throw new EntityNotFoundException("Pedido não encontrado");
-		}
+    private Pagamento criarPagamento(PedidoPagamentoRequest request, Pedido pedido, BigDecimal totalCalculado) {
+        Long idStatusPagamento = this.gerenciarStatusPagamento
+                .buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus())
+                .getIdStatusPagamento();
 
-		Long statusId = this.gerenciarStatusPedido.buscarStatusPedidoPorNome(request.getStatus().getStatus())
-				.getIdStatusPedido();
+        return Pagamento.builder()
+                .idPedido(pedido.getId())
+                .metodoPagamento(request.getMetodoPagamento())
+                .valorTotal(totalCalculado)
+                .dataPagamento(LocalDateTime.now())
+                .idStatusPagamento(idStatusPagamento)
+                .build();
+    }
 
-		Pedido pedidoAtualizado = this.gerenciarPedido.atualizarPedido(pedido, statusId);
+    private PedidoPagamentoResponse construirPedidoPagamentoResponse(Pedido pedido, Pagamento pagamento) {
+        return PedidoPagamentoResponse.builder()
+                .idPedido(pedido.getId())
+                .idPagamento(pagamento.getId())
+                .metodoPagamento(pagamento.getMetodoPagamento())
+                .status(StatusPedidoEnum.RECEBIDO_NAO_PAGO.getStatus())
+                .numeroPedido(pedido.getFilaPedido())
+                .build();
+    }
 
-		Pagamento pagamento = pagamentoRepository.buscarPorId(pedido.getId())
-				.orElseThrow(() -> new EntityNotFoundException("Pagamento não encontrado para o pedido"));
+    @Override
+    public Pedido atualizarPedidoPagamento(AtualizarPedidoRequest request) {
+        if (request.getStatus() == null) {
+            throw new IllegalArgumentException("Status do pedido não pode ser nulo");
+        }
 
-		Long novoStatusPagamento = switch (request.getStatus()) {
-		case RECEBIDO_NAO_PAGO -> 
-			gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus()).getIdStatusPagamento();
-		case RECEBIDO, EM_ANDAMENTO, FINALIZADO ->
-			gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.FINALIZADO.getStatus()).getIdStatusPagamento();
-		default -> 
-			gerenciarStatusPagamento
-				.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.ERRO.getStatus()).getIdStatusPagamento();
-		};
+        Pedido pedido = this.gerenciarPedido.buscarPedido(request.getId());
+        if (Objects.isNull(pedido)) {
+            throw new EntityNotFoundException("Pedido não encontrado");
+        }
 
-		Pagamento pagamentoAtualizado = Pagamento.builder()
-				.id(pagamento.getId())
-				.idPedido(pagamento.getIdPedido())
-				.metodoPagamento(pagamento.getMetodoPagamento())
-				.valorTotal(pagamento.getValorTotal())
-				.dataPagamento(pagamento.getDataPagamento())
-				.idStatusPagamento(novoStatusPagamento)
-				.build();
+        Long statusId = this.gerenciarStatusPedido.buscarStatusPedidoPorNome(request.getStatus().getStatus())
+                .getIdStatusPedido();
 
-		pagamentoRepository.salvar(pagamentoAtualizado);
+        Pedido pedidoAtualizado = this.gerenciarPedido.atualizarPedido(pedido, statusId);
 
-		return pedidoAtualizado;
-	}
+        Pagamento pagamento = pagamentoRepository.buscarPorId(pedido.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Pagamento não encontrado para o pedido"));
+
+        Long novoStatusPagamento = switch (request.getStatus()) {
+            case RECEBIDO_NAO_PAGO ->
+                gerenciarStatusPagamento
+                .buscarStatusPagamentoPorStatus(StatusPagamentoEnum.PENDENTE.getStatus()).getIdStatusPagamento();
+            case RECEBIDO, EM_ANDAMENTO, FINALIZADO ->
+                gerenciarStatusPagamento
+                .buscarStatusPagamentoPorStatus(StatusPagamentoEnum.FINALIZADO.getStatus()).getIdStatusPagamento();
+            default ->
+                gerenciarStatusPagamento
+                .buscarStatusPagamentoPorStatus(StatusPagamentoEnum.ERRO.getStatus()).getIdStatusPagamento();
+        };
+
+        Pagamento pagamentoAtualizado = Pagamento.builder()
+                .id(pagamento.getId())
+                .idPedido(pagamento.getIdPedido())
+                .metodoPagamento(pagamento.getMetodoPagamento())
+                .valorTotal(pagamento.getValorTotal())
+                .dataPagamento(pagamento.getDataPagamento())
+                .idStatusPagamento(novoStatusPagamento)
+                .build();
+
+        pagamentoRepository.salvar(pagamentoAtualizado);
+
+        return pedidoAtualizado;
+    }
 }

@@ -4,7 +4,8 @@ public enum StatusPedidoEnum {
     RECEBIDO("RECEBIDO"),
     RECEBIDO_NAO_PAGO("RECEBIDO - Não pago"),
     EM_ANDAMENTO("EM_ANDAMENTO"),
-    FINALIZADO("FINALIZADO");
+    FINALIZADO("FINALIZADO"),
+    CANCELADO("CANCELADO");
 
     private String status;
 
