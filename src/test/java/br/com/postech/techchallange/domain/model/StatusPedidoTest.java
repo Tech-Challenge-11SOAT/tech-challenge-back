@@ -1,7 +1,9 @@
 package br.com.postech.techchallange.domain.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class StatusPedidoTest {
 
@@ -37,4 +39,4 @@ class StatusPedidoTest {
         assertEquals(idStatusPedido, statusPedido.getIdStatusPedido());
         assertEquals(nomeStatus, statusPedido.getNomeStatus());
     }
-} 
+}
