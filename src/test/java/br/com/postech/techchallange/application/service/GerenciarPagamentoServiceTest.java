@@ -55,7 +55,8 @@ class GerenciarPagamentoServiceTest {
     @Captor
     private ArgumentCaptor<Pagamento> pagamentoCaptor;
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     @DisplayName("Deve criar pagamento com sucesso")
     void deveCriarPagamentoComSucesso() {
         // Arrange
