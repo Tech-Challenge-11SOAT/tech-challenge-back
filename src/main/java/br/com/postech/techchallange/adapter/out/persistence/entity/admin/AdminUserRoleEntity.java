@@ -7,6 +7,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,18 +18,20 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AdminUserRoleEntity {
 
-    @EmbeddedId
-    private AdminUserRoleId id;
+	@EmbeddedId
+	private AdminUserRoleId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("idAdmin")
-    @JoinColumn(name = "id_admin")
-    private AdminUserEntity adminUser;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@MapsId("idAdmin")
+	@JoinColumn(name = "id_admin")
+	private AdminUserEntity adminUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("idRole")
-    @JoinColumn(name = "id_role")
-    private AdminRoleEntity role;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@MapsId("idRole")
+	@JoinColumn(name = "id_role")
+	private AdminRoleEntity role;
 }
