@@ -3,6 +3,7 @@ package br.com.postech.techchallange.adapter.in.rest.request;
 import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 
 public class FakeCheckoutRequest {
 
@@ -26,6 +27,7 @@ public class FakeCheckoutRequest {
 		this.produtos = produtos;
 	}
 
+	@EqualsAndHashCode
 	public static class ItemProduto {
 
 		@NotNull
