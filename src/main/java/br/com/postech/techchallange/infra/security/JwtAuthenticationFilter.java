@@ -21,95 +21,95 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-	private final JwtProvider jwtProvider;
-	private final TokenBlacklistService tokenBlacklistService;
+    private final JwtProvider jwtProvider;
+    private final TokenBlacklistService tokenBlacklistService;
 
-	public JwtAuthenticationFilter(JwtProvider jwtProvider, TokenBlacklistService tokenBlacklistService) {
-		this.jwtProvider = jwtProvider;
-		this.tokenBlacklistService = tokenBlacklistService;
-	}
+    public JwtAuthenticationFilter(JwtProvider jwtProvider, TokenBlacklistService tokenBlacklistService) {
+        this.jwtProvider = jwtProvider;
+        this.tokenBlacklistService = tokenBlacklistService;
+    }
 
-	@Override
-	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-		String requestURI = request.getRequestURI();
-		logger.info("[JWT Filter] Nova requisição recebida: {}", requestURI);
+    @Override
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        logger.info("[JWT Filter] Nova requisição recebida: {}", requestURI);
 
-		String token = this.parseToken(request);
+        String token = this.parseToken(request);
 
-		if (SecurityUtils.isPublicEndpoint(requestURI)) {
-			logger.info("Endpoint não necessita de autorização, continuando...");
-			filterChain.doFilter(request, response);
-			return;
-		}
+        if (SecurityUtils.isPublicEndpoint(requestURI)) {
+            logger.info("Endpoint não necessita de autorização, continuando...");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-		try {
-			if (token == null) {
-				logger.info("[JWT Filter] Nenhum token JWT encontrado.");
-				filterChain.doFilter(request, response);
-				return;
-			}
+        try {
+            if (token == null) {
+                logger.info("[JWT Filter] Nenhum token JWT encontrado.");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-			logger.info("[JWT Filter] Token JWT encontrado.");
+            logger.info("[JWT Filter] Token JWT encontrado.");
 
-			if (!jwtProvider.validateToken(token)) {
-				logger.warn("[JWT Filter] 🚫 Token inválido.");
-				this.sendForbiddenResponse(response, "Token inválido. Por favor, realize o login novamente.");
-				return;
-			}
+            if (!jwtProvider.validateToken(token)) {
+                logger.warn("[JWT Filter] 🚫 Token inválido.");
+                this.sendForbiddenResponse(response, "Token inválido. Por favor, realize o login novamente.");
+                return;
+            }
 
-			if (tokenBlacklistService.isTokenBlacklisted(token)) {
-				logger.warn("[JWT Filter] 🚫 Token encontrado na blacklist.");
-				this.sendForbiddenResponse(response, "Token inválido (blacklist). Por favor, realize o login novamente.");
-				return;
-			}
+            if (tokenBlacklistService.isTokenBlacklisted(token)) {
+                logger.warn("[JWT Filter] 🚫 Token encontrado na blacklist.");
+                this.sendForbiddenResponse(response, "Token inválido (blacklist). Por favor, realize o login novamente.");
+                return;
+            }
 
-			Claims claims = jwtProvider.getClaims(token);
-			String email = claims.getSubject();
-			List<?> roles = claims.get("roles", List.class);
+            Claims claims = jwtProvider.getClaims(token);
+            String email = claims.getSubject();
+            List<?> roles = claims.get("roles", List.class);
 
-			List<SimpleGrantedAuthority> authorities = roles.stream()
-					.map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-					.toList();
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .toList();
 
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
 
-			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-			logger.info("[JWT Filter] ✅ Autenticação bem-sucedida para usuário: {} com roles: {}", email, roles);
+            logger.info("[JWT Filter] ✅ Autenticação bem-sucedida para usuário: {} com roles: {}", email, roles);
 
-			filterChain.doFilter(request, response);
-		} catch (io.jsonwebtoken.ExpiredJwtException ex) {
-			logger.warn("[JWT Filter] 🚫 Token expirado.", ex);
-			sendForbiddenResponse(response, "Token expirado. Por favor, realize o login novamente.");
-		} catch (Exception ex) {
-			logger.error("[JWT Filter] 🚫 Erro no processamento do token.", ex);
-			sendForbiddenResponse(response, "Erro de autenticação. Por favor, realize o login novamente.");
-		}
-	}
+            filterChain.doFilter(request, response);
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            logger.warn("[JWT Filter] 🚫 Token expirado.", ex);
+            sendForbiddenResponse(response, "Token expirado. Por favor, realize o login novamente.");
+        } catch (ServletException | IOException ex) {
+            logger.error("[JWT Filter] 🚫 Erro no processamento do token.", ex);
+            sendForbiddenResponse(response, "Erro de autenticação. Por favor, realize o login novamente.");
+        }
+    }
 
-	private String parseToken(HttpServletRequest request) {
-		String headerAuth = request.getHeader("Authorization");
+    private String parseToken(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
 
-		if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-			return headerAuth.replace("Bearer ", "");
-		}
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.replace("Bearer ", "");
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
-		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-		response.setContentType("application/json");
-		response.getWriter().write("""
+    private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.getWriter().write("""
 				{
 				    "error": "Forbidden",
 				    "message": "%s",
 				    "status": 403
 				}
 				""".formatted(message));
-	}
+    }
 
 }
