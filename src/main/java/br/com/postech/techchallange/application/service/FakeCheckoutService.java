@@ -41,6 +41,7 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 					return item;
 				}).collect(java.util.stream.Collectors.toList());
 		pagamentoRequest.setProdutos(produtosConvertidos);
+		pagamentoRequest.setMetodoPagamento(request.getMetodoPagamento());
 		return pagamentoRequest;
 	}
 
