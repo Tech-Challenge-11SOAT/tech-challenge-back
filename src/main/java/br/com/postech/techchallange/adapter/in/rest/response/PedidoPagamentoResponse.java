@@ -12,4 +12,5 @@ public class PedidoPagamentoResponse {
 	private String metodoPagamento;
 	private String status;
 	private Integer numeroPedido;
+	private OrderResponseDTO orderResponse;
 }
