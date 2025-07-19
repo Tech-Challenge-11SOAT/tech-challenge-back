@@ -1,10 +1,5 @@
 package br.com.postech.techchallange.application.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import br.com.postech.techchallange.adapter.in.rest.request.WebhookPagamentoRequest;
 import br.com.postech.techchallange.domain.enums.StatusPagamentoEnum;
 import br.com.postech.techchallange.domain.model.Pagamento;
@@ -15,6 +10,10 @@ import br.com.postech.techchallange.domain.port.in.GerenciarStatusPagamentoUseCa
 import br.com.postech.techchallange.domain.port.in.PagamentoValidatorPort;
 import br.com.postech.techchallange.domain.port.out.PagamentoRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +23,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
     private final GerenciarStatusPagamentoUseCase gerenciarStatusPagamento;
     private final GerenciarPedidoUseCase gerenciarPedidoUseCase;
     private final PagamentoValidatorPort pagamentoValidator;
+    private final NotificacaoPagamentoService notificacaoService;
 
     @Override
     public Pagamento pagar(Pagamento pagamento) {
@@ -73,5 +73,8 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
         pagamento.setIdStatusPagamento(novoStatusId);
         pagamento.setDataPagamento(LocalDateTime.now());
         repository.salvar(pagamento);
+
+        // Notifica todos os listeners (incluindo o WebSocketHandler) via observer pattern
+        notificacaoService.notificarMudancaStatus(request.getIdPedido());
     }
 }

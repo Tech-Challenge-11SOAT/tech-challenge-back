@@ -1,27 +1,5 @@
 package br.com.postech.techchallange.application.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import br.com.postech.techchallange.adapter.in.rest.request.FakeCheckoutRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.PedidoPagamentoRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoPagamentoResponse;
@@ -29,6 +7,25 @@ import br.com.postech.techchallange.domain.model.OrdemPagamento;
 import br.com.postech.techchallange.domain.model.Produto;
 import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FakeCheckoutServiceTest {
@@ -87,8 +84,8 @@ class FakeCheckoutServiceTest {
                 .qrCode("qr_code_data")
                 .qrCodeBase64("base64_data")
                 .ticketUrl("https://ticket.url")
-                .dateCreated(LocalDateTime.now())
-                .dateLastUpdated(LocalDateTime.now())
+                .dateCreated(OffsetDateTime.now())
+                .dateLastUpdated(OffsetDateTime.now())
                 .build();
     }
 

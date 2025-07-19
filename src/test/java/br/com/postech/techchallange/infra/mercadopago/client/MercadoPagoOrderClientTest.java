@@ -17,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -62,27 +61,15 @@ class MercadoPagoOrderClientTest {
         mockResponse.setCreatedDate(OffsetDateTime.now());
         mockResponse.setLastUpdatedDate(OffsetDateTime.now());
 
-        // Setup payer
-        MercadoPagoOrderResponse.Payer payer = new MercadoPagoOrderResponse.Payer();
-        payer.setEmail("test@example.com");
-        mockResponse.setPayer(payer);
-
         // Setup transactions with payment data
-        MercadoPagoOrderResponse.Transactions transactions = new MercadoPagoOrderResponse.Transactions();
-        MercadoPagoOrderResponse.Payment payment = new MercadoPagoOrderResponse.Payment();
+        var transactions = new MercadoPagoOrderResponse();
+        var payment = new MercadoPagoOrderResponse.PaymentMethod();
         payment.setId("payment_123");
-        payment.setStatus("pending");
 
-        MercadoPagoOrderResponse.PointOfInteraction pointOfInteraction = new MercadoPagoOrderResponse.PointOfInteraction();
-        MercadoPagoOrderResponse.TransactionData transactionData = new MercadoPagoOrderResponse.TransactionData();
-        transactionData.setQrCode("qr_code_data");
-        transactionData.setQrCodeBase64("base64_data");
-        transactionData.setTicketUrl("https://ticket.url");
-        pointOfInteraction.setTransactionData(transactionData);
-        payment.setPointOfInteraction(pointOfInteraction);
+        payment.setQrCode("qr_code_data");
+        payment.setQrCodeBase64("base64_data");
+        payment.setTicketUrl("https://ticket.url");
 
-        transactions.setPayments(List.of(payment));
-        mockResponse.setTransactions(transactions);
     }
 
     @Test

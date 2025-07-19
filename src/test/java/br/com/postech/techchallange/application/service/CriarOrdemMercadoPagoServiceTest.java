@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,8 +47,8 @@ class CriarOrdemMercadoPagoServiceTest {
                 .qrCode("qr_code_data")
                 .qrCodeBase64("base64_data")
                 .ticketUrl("https://ticket.url")
-                .dateCreated(LocalDateTime.now())
-                .dateLastUpdated(LocalDateTime.now())
+                .dateCreated(OffsetDateTime.now())
+                .dateLastUpdated(OffsetDateTime.now())
                 .build();
     }
 

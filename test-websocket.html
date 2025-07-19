@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Teste WebSocket - Pagamento</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.error { background-color: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; }
+        #log { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Teste WebSocket - Monitoramento de Pagamento</h1>
+
+    <div>
+        <label for="idPedido">ID do Pedido:</label>
+        <input id="idPedido" placeholder="Ex: 1" type="number" value="1">
+        <button onclick="conectar()">Conectar</button>
+        <button onclick="desconectar()">Desconectar</button>
+    </div>
+
+    <div class="status disconnected" id="status">
+        Status: Desconectado
+    </div>
+
+    <div>
+        <h3>Log de Mensagens:</h3>
+        <div id="log"></div>
+        <button onclick="limparLog()">Limpar Log</button>
+    </div>
+
+    <div>
+        <h3>Teste Manual de Webhook:</h3>
+        <p>Para simular o webhook do Mercado Pago:</p>
+        <button onclick="simularWebhookAprovado()">Simular Pagamento Aprovado</button>
+        <button onclick="simularWebhookRecusado()">Simular Pagamento Recusado</button>
+    </div>
+</div>
+
+<script>
+    let ws = null;
+    let idPedidoAtual = null;
+
+    function log(mensagem) {
+        const logDiv = document.getElementById('log');
+        const timestamp = new Date().toLocaleTimeString();
+        logDiv.innerHTML += `[${timestamp}] ${mensagem}<br>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function atualizarStatus(texto, classe) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = `Status: ${texto}`;
+        statusDiv.className = `status ${classe}`;
+    }
+
+    function conectar() {
+        const idPedido = document.getElementById('idPedido').value;
+
+        if (!idPedido) {
+            alert('Por favor, informe o ID do pedido');
+            return;
+        }
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            log('⚠️ Já existe uma conexão ativa. Desconectando primeiro...');
+            ws.close();
+        }
+
+        idPedidoAtual = idPedido;
+        const wsUrl = `ws://localhost:8080/ws/pagamento/${idPedido}`;
+
+        log(`🔄 Tentando conectar ao WebSocket: ${wsUrl}`);
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = function(event) {
+            log('✅ Conectado ao WebSocket com sucesso!');
+            atualizarStatus(`Conectado (Pedido: ${idPedido})`, 'connected');
+        };
+
+        ws.onmessage = function(event) {
+            const status = event.data;
+            log(`📨 Status recebido: ${status}`);
+
+            // Atualiza a interface baseado no status
+            switch(status) {
+                case 'FINALIZADO':
+                    log('🎉 Pagamento aprovado!');
+                    break;
+                case 'ERRO':
+                    log('❌ Pagamento recusado!');
+                    break;
+                case 'PENDENTE':
+                    log('⏳ Pagamento pendente...');
+                    break;
+                case 'PAGAMENTO_NAO_ENCONTRADO':
+                    log('🔍 Pagamento não encontrado para este pedido');
+                    break;
+                case 'STATUS_DESCONHECIDO':
+                    log('❓ Status desconhecido');
+                    break;
+            }
+        };
+
+        ws.onerror = function(error) {
+            log(`❌ Erro no WebSocket: ${error}`);
+            atualizarStatus('Erro na conexão', 'error');
+        };
+
+        ws.onclose = function(event) {
+            log(`🔌 Conexão fechada. Código: ${event.code}, Motivo: ${event.reason}`);
+            atualizarStatus('Desconectado', 'disconnected');
+        };
+    }
+
+    function desconectar() {
+        if (ws) {
+            ws.close();
+            log('🔌 Desconectando...');
+        } else {
+            log('⚠️ Nenhuma conexão ativa para desconectar');
+        }
+    }
+
+    function limparLog() {
+        document.getElementById('log').innerHTML = '';
+    }
+
+    async function simularWebhookAprovado() {
+        if (!idPedidoAtual) {
+            alert('Conecte-se primeiro a um pedido');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/open/pagamentos/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    idPedido: parseInt(idPedidoAtual),
+                    statusPagamento: 'APROVADO'
+                })
+            });
+
+            if (response.ok) {
+                log('✅ Webhook simulado com sucesso (APROVADO)');
+            } else {
+                log(`❌ Erro ao simular webhook: ${response.status}`);
+            }
+        } catch (error) {
+            log(`❌ Erro na requisição: ${error.message}`);
+        }
+    }
+
+    async function simularWebhookRecusado() {
+        if (!idPedidoAtual) {
+            alert('Conecte-se primeiro a um pedido');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/pagamentos/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    idPedido: parseInt(idPedidoAtual),
+                    statusPagamento: 'RECUSADO'
+                })
+            });
+
+            if (response.ok) {
+                log('✅ Webhook simulado com sucesso (RECUSADO)');
+            } else {
+                log(`❌ Erro ao simular webhook: ${response.status}`);
+            }
+        } catch (error) {
+            log(`❌ Erro na requisição: ${error.message}`);
+        }
+    }
+
+    // Auto-conectar se houver ID do pedido na URL
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const idPedido = params.get('pedido');
+        if (idPedido) {
+            document.getElementById('idPedido').value = idPedido;
+            log(`🔗 ID do pedido detectado na URL: ${idPedido}`);
+        }
+    };
+</script>
+</body>
+</html>
