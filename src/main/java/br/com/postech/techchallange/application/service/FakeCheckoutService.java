@@ -3,6 +3,7 @@ package br.com.postech.techchallange.application.service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	private final OrquestradorPedidoPagamentoService orquestradorPedidoPagamentoService;
 	private final CriarOrdemMercadoPagoUseCase criarOrdemMercadoPagoUseCase;
 	private final ProdutoRepositoryPort produtoRepositoryPort;
+	private final GerenciarClienteUseCase gerenciarClienteUseCase;
 
 	@Override
 	public PedidoPagamentoResponse processarFakeCheckout(FakeCheckoutRequest request) {
@@ -86,7 +88,14 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	}
 
 	private String determinarEmailPagador(FakeCheckoutRequest request) {
-		return "test@testuser.com";
+		if (request.getIdCliente() == null) return "test@gmail.com";
+
+		var cliente = gerenciarClienteUseCase.buscarCliente(request.getIdCliente());
+		if (cliente != null && cliente.getCpfCliente() != null) {
+			return cliente.getEmailCliente();
+		}
+
+		return "test@gmail.com";
 	}
 
 	private PedidoPagamentoRequest converterFakeCheckoutParaPedidoPagamento(FakeCheckoutRequest request) {
