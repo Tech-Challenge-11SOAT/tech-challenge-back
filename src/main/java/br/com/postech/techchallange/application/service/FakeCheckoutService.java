@@ -1,13 +1,5 @@
 package br.com.postech.techchallange.application.service;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import br.com.postech.techchallange.adapter.in.rest.request.FakeCheckoutRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.PedidoPagamentoRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.OrderResponseDTO;
@@ -16,8 +8,15 @@ import br.com.postech.techchallange.domain.model.OrdemPagamento;
 import br.com.postech.techchallange.domain.model.Produto;
 import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.in.FakeCheckoutUseCase;
+import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
 import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -54,14 +53,31 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 			// Adiciona informações do Mercado Pago à resposta
 			OrderResponseDTO orderResponse = OrderResponseDTO.builder()
 				.orderId(ordemPagamento.getId())
+					.type(ordemPagamento.getType())
+					.status(ordemPagamento.getStatus())
+					.statusDetail(ordemPagamento.getStatusDetail())
 				.externalReference(ordemPagamento.getExternalReference())
 				.totalAmount(ordemPagamento.getTotalAmount())
-				.status(ordemPagamento.getStatus())
+					.processingMode(ordemPagamento.getProcessingMode())
+					.countryCode(ordemPagamento.getCountryCode())
+					.userId(ordemPagamento.getUserId())
+					.captureMode(ordemPagamento.getCaptureMode())
+					.currency(ordemPagamento.getCurrency())
+					.createdDate(ordemPagamento.getDateCreated())
+					.lastUpdatedDate(ordemPagamento.getDateLastUpdated())
+					.applicationId(ordemPagamento.getApplicationId())
+					.paymentId(ordemPagamento.getPaymentId())
+					.paymentStatus(ordemPagamento.getPaymentStatus())
+					.paymentStatusDetail(ordemPagamento.getPaymentStatusDetail())
+					.paymentAmount(ordemPagamento.getPaymentAmount())
+					.expirationTime(ordemPagamento.getExpirationTime())
+					.dateOfExpiration(ordemPagamento.getDateOfExpiration())
+					.referenceId(ordemPagamento.getReferenceId())
+					.paymentMethodId(ordemPagamento.getPaymentMethodId())
+					.paymentMethodType(ordemPagamento.getPaymentMethodType())
 				.qrCode(ordemPagamento.getQrCode())
 				.qrCodeBase64(ordemPagamento.getQrCodeBase64())
 				.ticketUrl(ordemPagamento.getTicketUrl())
-				.dateCreated(ordemPagamento.getDateCreated())
-				.dateLastUpdated(ordemPagamento.getDateLastUpdated())
 				.build();
 
 			response.setOrderResponse(orderResponse);

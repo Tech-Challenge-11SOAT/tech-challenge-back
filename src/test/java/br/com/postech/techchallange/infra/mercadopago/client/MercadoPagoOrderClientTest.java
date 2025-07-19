@@ -2,8 +2,6 @@ package br.com.postech.techchallange.infra.mercadopago.client;
 
 import br.com.postech.techchallange.domain.model.OrdemPagamento;
 import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,12 +16,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MercadoPagoOrderClientTest {
@@ -60,8 +59,8 @@ class MercadoPagoOrderClientTest {
         mockResponse.setStatus("pending");
         mockResponse.setTotalAmount(new BigDecimal("100.00"));
         mockResponse.setExternalReference("pedido_1_123456789");
-        mockResponse.setDateCreated(LocalDateTime.now());
-        mockResponse.setDateLastUpdated(LocalDateTime.now());
+        mockResponse.setCreatedDate(OffsetDateTime.now());
+        mockResponse.setLastUpdatedDate(OffsetDateTime.now());
 
         // Setup payer
         MercadoPagoOrderResponse.Payer payer = new MercadoPagoOrderResponse.Payer();

@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,36 +114,69 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
         String qrCode = null;
         String qrCodeBase64 = null;
         String ticketUrl = null;
+        String paymentMethodId = null;
+        String paymentMethodType = null;
+        String paymentId = null;
+        String paymentStatus = null;
+        String paymentStatusDetail = null;
+        BigDecimal paymentAmount = null;
+        String expirationTime = null;
+        OffsetDateTime dateOfExpiration = null;
+        String referenceId = null;
 
-        // Extrair dados do QR Code se disponível
+        // Extrair dados do pagamento se disponível
         if (response.getTransactions() != null &&
             !response.getTransactions().getPayments().isEmpty()) {
 
             MercadoPagoOrderResponse.Payment payment = response.getTransactions().getPayments().get(0);
 
-            if (payment.getPointOfInteraction() != null &&
-                payment.getPointOfInteraction().getTransactionData() != null) {
+            // Dados do payment
+            paymentId = payment.getId();
+            paymentStatus = payment.getStatus();
+            paymentStatusDetail = payment.getStatusDetail();
+            paymentAmount = payment.getAmount();
+            expirationTime = payment.getExpirationTime();
+            dateOfExpiration = payment.getDateOfExpiration();
+            referenceId = payment.getReferenceId();
 
-                MercadoPagoOrderResponse.TransactionData transactionData =
-                    payment.getPointOfInteraction().getTransactionData();
+            if (payment.getPaymentMethod() != null) {
+                MercadoPagoOrderResponse.PaymentMethod paymentMethod = payment.getPaymentMethod();
 
-                qrCode = transactionData.getQrCode();
-                qrCodeBase64 = transactionData.getQrCodeBase64();
-                ticketUrl = transactionData.getTicketUrl();
+                qrCode = paymentMethod.getQrCode();
+                qrCodeBase64 = paymentMethod.getQrCodeBase64();
+                ticketUrl = paymentMethod.getTicketUrl();
+                paymentMethodId = paymentMethod.getId();
+                paymentMethodType = paymentMethod.getType();
             }
         }
 
         return OrdemPagamento.builder()
                 .id(response.getId())
+                .type(response.getType())
+                .status(response.getStatus())
+                .statusDetail(response.getStatusDetail())
                 .externalReference(response.getExternalReference())
                 .totalAmount(response.getTotalAmount())
-                .status(response.getStatus())
-                .payerEmail(response.getPayer() != null ? response.getPayer().getEmail() : null)
+                .processingMode(response.getProcessingMode())
+                .countryCode(response.getCountryCode())
+                .userId(response.getUserId())
+                .captureMode(response.getCaptureMode())
+                .currency(response.getCurrency())
+                .dateCreated(response.getCreatedDate())
+                .dateLastUpdated(response.getLastUpdatedDate())
+                .applicationId(response.getIntegrationData() != null ? response.getIntegrationData().getApplicationId() : null)
+                .paymentId(paymentId)
+                .paymentStatus(paymentStatus)
+                .paymentStatusDetail(paymentStatusDetail)
+                .paymentAmount(paymentAmount)
+                .expirationTime(expirationTime)
+                .dateOfExpiration(dateOfExpiration)
+                .referenceId(referenceId)
+                .paymentMethodId(paymentMethodId)
+                .paymentMethodType(paymentMethodType)
                 .qrCode(qrCode)
                 .qrCodeBase64(qrCodeBase64)
                 .ticketUrl(ticketUrl)
-                .dateCreated(response.getDateCreated())
-                .dateLastUpdated(response.getDateLastUpdated())
                 .build();
     }
 }

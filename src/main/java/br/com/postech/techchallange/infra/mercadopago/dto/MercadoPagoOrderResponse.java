@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -13,6 +13,9 @@ public class MercadoPagoOrderResponse {
     private String id;
     private String type;
     private String status;
+
+    @JsonProperty("status_detail")
+    private String statusDetail;
 
     @JsonProperty("total_amount")
     private BigDecimal totalAmount;
@@ -23,14 +26,33 @@ public class MercadoPagoOrderResponse {
     @JsonProperty("processing_mode")
     private String processingMode;
 
-    @JsonProperty("date_created")
-    private LocalDateTime dateCreated;
+    @JsonProperty("country_code")
+    private String countryCode;
 
-    @JsonProperty("date_last_updated")
-    private LocalDateTime dateLastUpdated;
+    @JsonProperty("user_id")
+    private String userId;
+
+    @JsonProperty("capture_mode")
+    private String captureMode;
+
+    private String currency;
+
+    @JsonProperty("created_date")
+    private OffsetDateTime createdDate;
+
+    @JsonProperty("last_updated_date")
+    private OffsetDateTime lastUpdatedDate;
+
+    @JsonProperty("integration_data")
+    private IntegrationData integrationData;
 
     private Transactions transactions;
-    private Payer payer;
+
+    @Data
+    public static class IntegrationData {
+        @JsonProperty("application_id")
+        private String applicationId;
+    }
 
     @Data
     public static class Transactions {
@@ -41,46 +63,37 @@ public class MercadoPagoOrderResponse {
     public static class Payment {
         private String id;
         private String status;
-        private BigDecimal amount;
 
-        @JsonProperty("payment_method")
-        private PaymentMethod paymentMethod;
+        @JsonProperty("status_detail")
+        private String statusDetail;
+
+        private BigDecimal amount;
 
         @JsonProperty("expiration_time")
         private String expirationTime;
 
-        @JsonProperty("point_of_interaction")
-        private PointOfInteraction pointOfInteraction;
+        @JsonProperty("date_of_expiration")
+        private OffsetDateTime dateOfExpiration;
+
+        @JsonProperty("reference_id")
+        private String referenceId;
+
+        @JsonProperty("payment_method")
+        private PaymentMethod paymentMethod;
     }
 
     @Data
     public static class PaymentMethod {
         private String id;
         private String type;
-    }
 
-    @Data
-    public static class PointOfInteraction {
-
-        @JsonProperty("transaction_data")
-        private TransactionData transactionData;
-    }
-
-    @Data
-    public static class TransactionData {
+        @JsonProperty("ticket_url")
+        private String ticketUrl;
 
         @JsonProperty("qr_code")
         private String qrCode;
 
         @JsonProperty("qr_code_base64")
         private String qrCodeBase64;
-
-        @JsonProperty("ticket_url")
-        private String ticketUrl;
-    }
-
-    @Data
-    public static class Payer {
-        private String email;
     }
 }
