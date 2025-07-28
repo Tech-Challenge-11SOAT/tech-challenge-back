@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tech-api
+  namespace: techchallenge
+spec:
+  replicas: 2
+  selector: 
+    matchLabels: 
+      app: tech-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: tech-api
+    spec:
+      containers:
+        - name: tech-api
+          image: nicolasmartinss/techchallenge-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: tech-api-config
+            - secretRef:
+                name: tech-api-secret
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            failureThreshold: 3 
+            successThreshold: 1
+            timeoutSeconds: 3
+          readinessProbe:
+              httpGet:
+                port: 8080
+                path: /health
+              initialDelaySeconds: 3 
+              periodSeconds: 4 
+              failureThreshold: 3
+              successThreshold: 2 
+              timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5

@@ -38,6 +38,13 @@ public class RateLimitingFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		if (request instanceof HttpServletRequest req && response instanceof HttpServletResponse res) {
+
+			String bypass = req.getHeader("X-Bypass-RateLimit");
+			if ("true".equalsIgnoreCase(bypass)) {
+				chain.doFilter(request, response); // ignora o bucket
+				return;
+			}
+
 			String ip = req.getRemoteAddr();
 			Bucket bucket = resolveBucket(ip);
 			if (bucket.tryConsume(1)) {

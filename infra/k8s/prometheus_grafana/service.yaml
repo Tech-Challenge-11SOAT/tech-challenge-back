@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tech-api-monitor
+  namespace: observabilidade
+  labels:
+    release: observabilidade  # IMPORTANTE: deve bater com o label usado na instalação do Prometheus
+spec:
+  selector:
+    matchLabels:
+      app: tech-api  # deve bater com o label do Service
+  namespaceSelector:
+    matchNames:
+      - techchallenge  # onde está o Service da aplicação
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s

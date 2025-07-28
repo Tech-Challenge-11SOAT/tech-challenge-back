@@ -28,6 +28,7 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth.requestMatchers(SecurityConstants.AUTHORIZED_URLS).permitAll()
+				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/admin/roles/**").hasRole("ADMIN").anyRequest().authenticated())
 				.addFilterBefore(new RateLimitingFilter(), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class)
