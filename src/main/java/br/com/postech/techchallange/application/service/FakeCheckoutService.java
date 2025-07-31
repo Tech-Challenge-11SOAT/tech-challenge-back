@@ -5,11 +5,10 @@ import br.com.postech.techchallange.adapter.in.rest.request.PedidoPagamentoReque
 import br.com.postech.techchallange.adapter.in.rest.response.OrderResponseDTO;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoPagamentoResponse;
 import br.com.postech.techchallange.domain.model.OrdemPagamento;
-import br.com.postech.techchallange.domain.model.Produto;
 import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.in.FakeCheckoutUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
-import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
+import br.com.postech.techchallange.domain.port.in.GerenciarPagamentoUseCase;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,25 +25,22 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 
 	private final OrquestradorPedidoPagamentoService orquestradorPedidoPagamentoService;
 	private final CriarOrdemMercadoPagoUseCase criarOrdemMercadoPagoUseCase;
-	private final ProdutoRepositoryPort produtoRepositoryPort;
 	private final GerenciarClienteUseCase gerenciarClienteUseCase;
+	private final GerenciarPagamentoUseCase pagamentoUseCase;
 
 	@Override
 	public PedidoPagamentoResponse processarFakeCheckout(FakeCheckoutRequest request) {
-		enviarParaFila(request);
-
-		// Primeiro processa o pedido e pagamento normalmente
-		PedidoPagamentoRequest pagamentoRequest = converterFakeCheckoutParaPedidoPagamento(request);
-		PedidoPagamentoResponse response = orquestradorPedidoPagamentoService.orquestrarPedidoPagamento(pagamentoRequest);
+		PedidoPagamentoRequest pagamentoRequest = this.converterFakeCheckoutParaPedidoPagamento(request);
+		PedidoPagamentoResponse response = this.orquestradorPedidoPagamentoService.orquestrarPedidoPagamento(pagamentoRequest);
 
 		// Após todas as validações serem bem-sucedidas, integra com Mercado Pago
 		try {
-			BigDecimal totalAmount = calcularTotalPedido(request);
-			String payerEmail = determinarEmailPagador(request);
+			BigDecimal totalAmount = this.calcularTotalAmount(response);
+			String payerEmail = this.getEmailPagador(request);
 
 			log.info("Iniciando integração com Mercado Pago para pedido: {}", response.getIdPedido());
 
-			OrdemPagamento ordemPagamento = criarOrdemMercadoPagoUseCase.criarOrdemPagamento(
+			OrdemPagamento ordemPagamento = this.criarOrdemMercadoPagoUseCase.criarOrdemPagamento(
 				response.getIdPedido(),
 				totalAmount,
 				payerEmail
@@ -83,27 +79,24 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 			response.setOrderResponse(orderResponse);
 
 			log.info("Integração com Mercado Pago concluída com sucesso para pedido: {}", response.getIdPedido());
-
 		} catch (Exception e) {
-			log.error("Erro na integração com Mercado Pago para pedido: {}. Continuando sem integração.",
-				response.getIdPedido(), e);
+			log.error("Erro na integração com Mercado Pago para pedido: {}. Continuando sem integração.", response.getIdPedido(), e);
 			// Não propaga o erro para não quebrar o fluxo principal
 		}
 
 		return response;
 	}
 
-	private BigDecimal calcularTotalPedido(FakeCheckoutRequest request) {
-		return request.getProdutos().stream()
-			.map(item -> {
-				Produto produto = produtoRepositoryPort.buscarPorId(item.getIdProduto())
-					.orElseThrow(() -> new RuntimeException("Produto não encontrado: " + item.getIdProduto()));
-				return produto.getPreco().multiply(BigDecimal.valueOf(item.getQuantidade()));
-			})
-			.reduce(BigDecimal.ZERO, BigDecimal::add);
+	private BigDecimal calcularTotalAmount(PedidoPagamentoResponse response) {
+		var pagamento = this.pagamentoUseCase.buscarPagamento(response.getIdPagamento());
+		if (pagamento != null) {
+			return pagamento.getValorTotal();
+		}
+
+		throw new RuntimeException("Pagamento não encontrado para o ID: " + response.getIdPagamento());
 	}
 
-	private String determinarEmailPagador(FakeCheckoutRequest request) {
+	private String getEmailPagador(FakeCheckoutRequest request) {
 		if (request.getIdCliente() == null) return "test@gmail.com";
 
 		var cliente = gerenciarClienteUseCase.buscarCliente(request.getIdCliente());
@@ -130,11 +123,5 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 		pagamentoRequest.setProdutos(produtosConvertidos);
 		pagamentoRequest.setMetodoPagamento(request.getMetodoPagamento());
 		return pagamentoRequest;
-	}
-
-	public void enviarParaFila(FakeCheckoutRequest request) {
-		// Simula envio para fila
-		log.info("Fake checkout enviado para fila: Cliente={}, Produtos={}", request.getIdCliente(),
-				request.getProdutos());
 	}
 }
