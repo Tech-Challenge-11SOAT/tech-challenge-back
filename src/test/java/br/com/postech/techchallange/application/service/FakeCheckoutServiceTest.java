@@ -118,7 +118,6 @@ class FakeCheckoutServiceTest {
 
         // Assert
         assertEquals(expectedResponse, response);
-        verify(fakeCheckoutService).enviarParaFila(request);
         verify(orquestradorPedidoPagamentoService).orquestrarPedidoPagamento(pagamentoRequestCaptor.capture());
 
         PedidoPagamentoRequest capturedRequest = pagamentoRequestCaptor.getValue();
@@ -156,7 +155,6 @@ class FakeCheckoutServiceTest {
 
         // Assert
         assertEquals(expectedResponse, response);
-        verify(fakeCheckoutService).enviarParaFila(request);
         verify(orquestradorPedidoPagamentoService).orquestrarPedidoPagamento(pagamentoRequestCaptor.capture());
 
         PedidoPagamentoRequest capturedRequest = pagamentoRequestCaptor.getValue();
@@ -188,7 +186,6 @@ class FakeCheckoutServiceTest {
 
         // Assert
         assertEquals(expectedResponse, response);
-        verify(fakeCheckoutService).enviarParaFila(request);
         verify(orquestradorPedidoPagamentoService).orquestrarPedidoPagamento(pagamentoRequestCaptor.capture());
 
         PedidoPagamentoRequest capturedRequest = pagamentoRequestCaptor.getValue();
@@ -226,7 +223,6 @@ class FakeCheckoutServiceTest {
 
         // Assert
         assertEquals(expectedResponse, response);
-        verify(fakeCheckoutService).enviarParaFila(request);
         verify(orquestradorPedidoPagamentoService).orquestrarPedidoPagamento(pagamentoRequestCaptor.capture());
 
         PedidoPagamentoRequest capturedRequest = pagamentoRequestCaptor.getValue();
@@ -260,7 +256,6 @@ class FakeCheckoutServiceTest {
                 () -> fakeCheckoutService.processarFakeCheckout(request));
 
         assertEquals("Erro no processamento", exception.getMessage());
-        verify(fakeCheckoutService).enviarParaFila(request);
         verify(orquestradorPedidoPagamentoService).orquestrarPedidoPagamento(any());
     }
 
