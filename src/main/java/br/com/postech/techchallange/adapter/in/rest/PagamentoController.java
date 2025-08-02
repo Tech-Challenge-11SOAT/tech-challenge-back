@@ -67,7 +67,7 @@ public class PagamentoController {
 
 	@PostMapping("/webhook")
 	@Operation(summary = "Webhook de confirmação de pagamento")
-	public ResponseEntity<Void> webhookPagamento(@RequestBody WebhookPagamentoRequest request) {
+	public ResponseEntity<Void> webhookPagamento(@RequestBody @Valid WebhookPagamentoRequest request) {
 		pagamentoUseCase.processarWebhookPagamento(request);
 		return ResponseEntity.ok().build();
 	}

@@ -62,19 +62,45 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
     @Override
     public void processarWebhookPagamento(WebhookPagamentoRequest request) {
-        Pagamento pagamento = repository.buscarPorIdPedido(request.getIdPedido()).orElseThrow(() -> new RuntimeException("Pagamento não encontrado para o pedido informado"));
-        // Exemplo: statusPagamento = "APROVADO" ou "RECUSADO"
+        Long idPedido = this.getIdPedido(request.getData().getExternalReference());
+        Pagamento pagamento = repository.buscarPorIdPedido(idPedido)
+                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado para o pedido informado"));
+
         Long novoStatusId;
-        if ("APROVADO".equalsIgnoreCase(request.getStatusPagamento())) {
+        if (this.verifyOrderStatus(request.getData())) {
             novoStatusId = gerenciarStatusPagamento.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.FINALIZADO.getStatus()).getIdStatusPagamento();
         } else {
             novoStatusId = gerenciarStatusPagamento.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.ERRO.getStatus()).getIdStatusPagamento();
         }
+
         pagamento.setIdStatusPagamento(novoStatusId);
         pagamento.setDataPagamento(LocalDateTime.now());
         repository.salvar(pagamento);
 
         // Notifica todos os listeners (incluindo o WebSocketHandler) via observer pattern
-        notificacaoService.notificarMudancaStatus(request.getIdPedido());
+        notificacaoService.notificarMudancaStatus(idPedido);
     }
+
+    private Long getIdPedido(String ext) {
+        if (ext == null || ext.isBlank() || !ext.contains("_")) {
+            throw new IllegalArgumentException("String inválida");
+        }
+
+        String[] parts = ext.split("_");
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("Formato da string inválido: esperado pelo menos 3 partes separadas por '_'");
+        }
+
+        try {
+            return Long.parseLong(parts[2]);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("ID do pedido inválido: não é um número válido", ex);
+        }
+    }
+
+    private boolean verifyOrderStatus(WebhookPagamentoRequest.OrderData data) {
+        return "processed".equalsIgnoreCase(data.getStatus())
+                && "accredited".equalsIgnoreCase(data.getStatusDetail());
+    }
+
 }
