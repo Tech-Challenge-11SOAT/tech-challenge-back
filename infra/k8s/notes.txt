@@ -1,0 +1,24 @@
+1 - Criar o namespace techchallenge e outro observabilidade
+
+2 - Vamos fazer o kubectl apply no banco de dados, já que é necessário para a aplicação funcionar
+
+3 - Vamos fazer o kubectl apply no app
+
+4 - Vamos subir o metrics server com helm
+    - Garantir que estamos utilizando o arquivo values.yaml para ambiente cloud
+
+5 - Possível acessar o swagger via kubectl get svc -n techchallenge > EXTERNAL-IP
+    - Verificar a possibilidade de inserir como output
+    - Fazer um CNAME para algum domínio?
+
+7 - Inserir prometheus + grafana para leitura da métrica durante os testes.
+    - usar o repo prometheus-community/kube-prometheus-stack
+
+6 - Desenvolver o teste de carga
+    -  hey -n 2000 -c 20 -H "X-Bypass-RateLimit: true" http://138.197.252.181/open/status-pedidos
+
+8 - Fazer desenho da arquitetura escolhida
+
+9 - Verificar a possibilidade de excluir o diretório docker
+
+10 - Montar pipeline CI/CD com teste unitário e com deploy no docker hub e atualização no kubernetes.

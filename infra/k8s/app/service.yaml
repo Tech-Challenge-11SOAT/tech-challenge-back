@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tech-api
+  namespace: techchallenge
+  labels:
+    app: tech-api
+spec:
+  selector:
+    app: tech-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080  # ou a porta que o container Java expõe
+  type: LoadBalancer
