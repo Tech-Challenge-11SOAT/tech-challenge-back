@@ -33,6 +33,7 @@ public class SecurityConfig {
 		return http.csrf(csrf -> csrf.disable())
 				.cors(cors -> cors.configurationSource(corsConfigurationSource))
 				.authorizeHttpRequests(auth -> auth.requestMatchers(SecurityConstants.AUTHORIZED_URLS).permitAll()
+				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/admin/roles/**").hasRole("ADMIN").anyRequest().authenticated())
 				.addFilterBefore(new RateLimitingFilter(), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class)
