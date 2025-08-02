@@ -14,6 +14,8 @@ Uma aplicação para gerenciamento de pedidos de fast food desenvolvida com Java
 - JUnit (Testes)
 - Feign Client (Integração com APIs)
 - Cache (Spring Cache)
+- **Mercado Pago API** (Integração de Pagamentos PIX)
+- RestTemplate (Cliente HTTP)
 
 ## 📐 Arquitetura
 
@@ -30,6 +32,77 @@ src/main/java/br/com/postech/techchallange/
 │   ├── port/      # Interfaces (ports) de entrada e saída
 │   └── exception/ # Exceções de domínio
 └── infra/        # Configurações e componentes de infraestrutura
+    └── mercadopago/ # Integração com API do Mercado Pago
+```
+
+## 💳 Integração Mercado Pago
+
+O sistema integra com a API do Mercado Pago para processamento de pagamentos via PIX, oferecendo:
+
+### Funcionalidades
+
+- **Criação automática de ordens de pagamento** durante o checkout
+- **Geração de QR Code PIX** para pagamento instantâneo
+- **Chave de idempotência única** para cada transação
+- **Tratamento resiliente de erros** - não interrompe o fluxo principal
+- **Logs detalhados** para rastreabilidade
+
+### Fluxo de Integração
+
+1. Cliente finaliza pedido via endpoint `/open/pedidos/checkout`
+2. Sistema valida pedido e produtos
+3. **Após validações bem-sucedidas**, integra automaticamente com Mercado Pago
+4. Ordem de pagamento é criada na API do Mercado Pago
+5. QR Code PIX é gerado e retornado na resposta
+6. Cliente recebe dados completos do pedido + informações de pagamento
+
+### Estrutura da Resposta
+
+```json
+{
+  "idPedido": 1,
+  "idPagamento": 1,
+  "metodoPagamento": "PIX",
+  "status": "RECEBIDO_NAO_PAGO",
+  "numeroPedido": 1,
+  "orderResponse": {
+    "orderId": "order_123456",
+    "externalReference": "pedido_1_1234567890",
+    "totalAmount": 50.00,
+    "status": "pending",
+    "qrCode": "00020126580014br.gov.bcb.pix...",
+    "qrCodeBase64": "iVBORw0KGgoAAAANSUhEUgAA...",
+    "ticketUrl": "https://www.mercadopago.com.br/checkout/...",
+    "dateCreated": "2024-01-15T10:30:00",
+    "dateLastUpdated": "2024-01-15T10:30:00"
+  }
+}
+```
+
+### Configuração
+
+As configurações do Mercado Pago estão no `application.properties`:
+
+```properties
+# Mercado Pago Configuration
+mercadopago.api.base-url=https://api.mercadopago.com
+mercadopago.api.access-token=TEST-3705789938524084-050520-e7dc1883bd54202c6eaf0b4e8561a0ff-2422158577
+mercadopago.api.public-key=TEST-7c47deeb-29c4-4eee-b120-f808731c9f23
+mercadopago.api.timeout=30000
+```
+
+### Arquitetura da Integração
+
+```
+PedidoController (Inbound Adapter)
+    ↓
+FakeCheckoutService (Application Service)
+    ↓
+CriarOrdemMercadoPagoService (Use Case)
+    ↓
+MercadoPagoOrderClient (Outbound Adapter)
+    ↓
+Mercado Pago API
 ```
 
 ## 🔐 Segurança
@@ -38,6 +111,8 @@ src/main/java/br/com/postech/techchallange/
 - Controle de acesso baseado em roles
 - Endpoints protegidos
 - Blacklist de tokens
+- **Chaves de API isoladas** via variáveis de ambiente
+- **X-Idempotency-Key único** para cada chamada ao Mercado Pago
 
 ## 🛠 Funcionalidades
 
@@ -58,16 +133,18 @@ src/main/java/br/com/postech/techchallange/
 
 ### Pedidos e Pagamentos
 - Criação de pedidos
-- Checkout e pagamento
+- **Checkout integrado com Mercado Pago**
+- **Geração automática de QR Code PIX**
 - Acompanhamento de status
-- QR Code para pagamento
 - Fila de pedidos
 - Histórico de pedidos
+- **Ordens de pagamento via API externa**
 
 ### Status e Monitoramento
 - Status de pedidos
 - Status de pagamentos
 - Consulta de pagamentos
+- **Logs de integração com Mercado Pago**
 
 ## 📡 APIs e Endpoints
 
@@ -88,13 +165,15 @@ O sistema possui uma collection do Postman completa com todos os endpoints organ
 
 ### Pedidos
 - Criação e checkout
+- **Checkout com integração Mercado Pago** 🆕
 - Listagem e status
 - Busca por ID
 
 ### Pagamentos
 - Criação de pagamentos
-- QR Code
+- **QR Code PIX automático** 🆕
 - Consulta de status
+- **Dados da ordem Mercado Pago** 🆕
 
 ### Status
 - Status de pedidos
@@ -162,8 +241,8 @@ A aplicação estará disponível em:
    - Cadastre produtos (Produto > Criar produto)
    - Cadastre um cliente (Cliente > Adicionar Cliente)
    - Crie um pedido (Pedido > Criar Pedido)
-   - Realize o checkout (Pedido > Checkout)
-   - Crie o pagamento (Pagamentos > Criar pagamento)
+   - **Realize o checkout (Pedido > Checkout) - Agora com integração Mercado Pago** 🆕
+   - **Observe o QR Code PIX gerado automaticamente** 🆕
    - Acompanhe o status (Status Pedidos > Listar todos os status)
 
 ## 📦 Estrutura do Projeto
@@ -175,6 +254,7 @@ A aplicação estará disponível em:
 ├── postman/         # Collections do Postman
 ├── scripts/         # Scripts SQL e utilitários
 ├── src/             # Código fonte
+│   └── main/java/.../infra/mercadopago/  # Integração Mercado Pago 🆕
 └── terraform/       # Configurações de infraestrutura IaC
 ```
 
@@ -185,6 +265,13 @@ Para executar os testes:
 ```bash
 ./mvnw test
 ```
+
+**Testes da integração Mercado Pago inclusos:**
+
+- Testes unitários do `CriarOrdemMercadoPagoService`
+- Testes de integração do `MercadoPagoOrderClient`
+- Testes atualizados do `FakeCheckoutService` com Mercado Pago
+- Testes de tratamento de erros e resiliência
 
 ## 📚 Documentação
 

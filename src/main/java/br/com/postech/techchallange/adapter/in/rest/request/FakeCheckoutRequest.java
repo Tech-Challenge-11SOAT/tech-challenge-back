@@ -11,6 +11,8 @@ public class FakeCheckoutRequest {
 	@NotNull
 	private List<ItemProduto> produtos;
 
+	private String metodoPagamento;
+
 	public Long getIdCliente() {
 		return idCliente;
 	}
@@ -25,6 +27,14 @@ public class FakeCheckoutRequest {
 
 	public void setProdutos(List<ItemProduto> produtos) {
 		this.produtos = produtos;
+	}
+
+	public String getMetodoPagamento() {
+		return metodoPagamento;
+	}
+
+	public void setMetodoPagamento(String metodoPagamento) {
+		this.metodoPagamento = metodoPagamento;
 	}
 
 	@EqualsAndHashCode
