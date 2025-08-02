@@ -97,7 +97,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
 
         MercadoPagoOrderRequest.Payer payer = MercadoPagoOrderRequest.Payer.builder()
                 .email(ordemPagamento.getPayerEmail())
-                //.firstName("APRO")
+                .firstName("APRO")
                 .build();
 
         return MercadoPagoOrderRequest.builder()

@@ -97,14 +97,14 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	}
 
 	private String getEmailPagador(FakeCheckoutRequest request) {
-		if (request.getIdCliente() == null) return "test@gmail.com";
+		if (request.getIdCliente() == null) return "test@testuser.com";
 
 		var cliente = gerenciarClienteUseCase.buscarCliente(request.getIdCliente());
 		if (cliente != null && cliente.getCpfCliente() != null) {
 			return cliente.getEmailCliente();
 		}
 
-		return "test@gmail.com";
+		return "test@testuser.com";
 	}
 
 	private PedidoPagamentoRequest converterFakeCheckoutParaPedidoPagamento(FakeCheckoutRequest request) {

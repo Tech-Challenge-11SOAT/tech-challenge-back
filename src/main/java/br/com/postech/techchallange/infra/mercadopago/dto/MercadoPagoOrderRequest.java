@@ -54,7 +54,7 @@ public class MercadoPagoOrderRequest {
     @Data
     @Builder
     public static class Payer {
+        private String firstName;
         private String email;
-        // private String firstName;
     }
 }
