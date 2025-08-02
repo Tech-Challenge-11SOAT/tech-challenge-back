@@ -88,7 +88,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
         MercadoPagoOrderRequest.Payment payment = MercadoPagoOrderRequest.Payment.builder()
                 .amount(ordemPagamento.getTotalAmount().toString())
                 .paymentMethod(paymentMethod)
-                .expirationTime("P3Y6M4DT12H30M5S") // 3 anos, 6 meses, 4 dias, 12 horas, 30 minutos, 5 segundos
+                .expirationTime("PT5M")
                 .build();
 
         MercadoPagoOrderRequest.Transactions transactions = MercadoPagoOrderRequest.Transactions.builder()
