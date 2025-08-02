@@ -1,11 +1,11 @@
 package br.com.postech.techchallange.infra.mercadopago.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Builder;
 import lombok.Data;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Data
 @Builder
@@ -54,6 +54,8 @@ public class MercadoPagoOrderRequest {
     @Data
     @Builder
     public static class Payer {
+
+        @JsonProperty("first_name")
         private String firstName;
         private String email;
     }

@@ -1,11 +1,10 @@
 package br.com.postech.techchallange.infra.mercadopago.client;
 
-import br.com.postech.techchallange.domain.model.OrdemPagamento;
-import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
-import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderRequest;
-import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -15,10 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
+import br.com.postech.techchallange.domain.model.OrdemPagamento;
+import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
+import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderRequest;
+import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +37,8 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
 
     @Override
     public OrdemPagamento criarOrdemPagamento(OrdemPagamento ordemPagamento) {
-        log.info("Enviando requisição para Mercado Pago para external reference: {}", ordemPagamento.getExternalReference());
+        log.info("Enviando requisição para Mercado Pago para external reference: {}",
+                ordemPagamento.getExternalReference());
 
         try {
             String url = baseUrl + "/v1/orders";
@@ -58,8 +60,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
                     url,
                     HttpMethod.POST,
                     entity,
-                    MercadoPagoOrderResponse.class
-            );
+                    MercadoPagoOrderResponse.class);
 
             MercadoPagoOrderResponse responseBody = response.getBody();
 
@@ -88,7 +89,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
         MercadoPagoOrderRequest.Payment payment = MercadoPagoOrderRequest.Payment.builder()
                 .amount(ordemPagamento.getTotalAmount().toString())
                 .paymentMethod(paymentMethod)
-                .expirationTime("PT5M")
+                .expirationTime("PT30M")
                 .build();
 
         MercadoPagoOrderRequest.Transactions transactions = MercadoPagoOrderRequest.Transactions.builder()
@@ -126,7 +127,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
 
         // Extrair dados do pagamento se disponível
         if (response.getTransactions() != null &&
-            !response.getTransactions().getPayments().isEmpty()) {
+                !response.getTransactions().getPayments().isEmpty()) {
 
             MercadoPagoOrderResponse.Payment payment = response.getTransactions().getPayments().get(0);
 
@@ -164,7 +165,8 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
                 .currency(response.getCurrency())
                 .dateCreated(response.getCreatedDate())
                 .dateLastUpdated(response.getLastUpdatedDate())
-                .applicationId(response.getIntegrationData() != null ? response.getIntegrationData().getApplicationId() : null)
+                .applicationId(
+                        response.getIntegrationData() != null ? response.getIntegrationData().getApplicationId() : null)
                 .paymentId(paymentId)
                 .paymentStatus(paymentStatus)
                 .paymentStatusDetail(paymentStatusDetail)
