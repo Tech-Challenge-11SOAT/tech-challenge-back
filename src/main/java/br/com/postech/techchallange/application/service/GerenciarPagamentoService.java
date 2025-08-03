@@ -80,6 +80,19 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
         notificacaoService.notificarMudancaStatus(idPedido);
     }
 
+    /**
+     * Extrai o ID do pedido do external_id fornecido no formato "pedido_{idPedido}_{timestamp}".
+     * @param ext o external_id do pagamento, que deve conter pelo menos 3 partes separadas por '_'.
+     *            Exemplo: "pedido_12345_1633036800"
+     * @throws IllegalArgumentException se o external_id for inválido ou não contiver pelore partes suficientes.
+     *                                  Deve conter pelo menos 3 partes separadas por '_'.
+     *                                  A segunda parte deve ser um número válido representando o ID do pedido.
+     *                                  Se o formato não for respeitado, uma exceção será lançada.
+     *                                  Se a segunda parte não for um número válido, uma exceção será lançada.
+     *                                  Se o external_id for nulo ou vazio, uma exceção será lançada
+     *                                  com uma mensagem apropriada.
+     * @return
+     */
     private Long getIdPedido(String ext) {
         if (ext == null || ext.isBlank() || !ext.contains("_")) {
             throw new IllegalArgumentException("external_id inválido: está vazio ou deve conter pelo menos 3 partes separadas por '_'");
@@ -91,7 +104,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
         }
 
         try {
-            return Long.parseLong(parts[2]);
+            return Long.parseLong(parts[1]);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("ID do pedido inválido: não é um número válido", ex);
         }

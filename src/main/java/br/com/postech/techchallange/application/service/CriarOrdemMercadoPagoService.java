@@ -31,7 +31,7 @@ public class CriarOrdemMercadoPagoService implements CriarOrdemMercadoPagoUseCas
                     .totalAmount(totalAmount)
                     .paymentMethodId("pix")
                     .paymentMethodType("bank_transfer")
-                    .payerEmail(payerEmail != null ? payerEmail : "test@testuser.com")
+                    .payerEmail(payerEmail)
                     .build();
 
             OrdemPagamento ordemCriada = mercadoPagoPort.criarOrdemPagamento(ordemPagamento);
