@@ -82,7 +82,7 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
 
     private Long getIdPedido(String ext) {
         if (ext == null || ext.isBlank() || !ext.contains("_")) {
-            throw new IllegalArgumentException("String inválida");
+            throw new IllegalArgumentException("external_id inválido: está vazio ou deve conter pelo menos 3 partes separadas por '_'");
         }
 
         String[] parts = ext.split("_");

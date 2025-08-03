@@ -9,6 +9,7 @@ import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.in.FakeCheckoutUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarClienteUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarPagamentoUseCase;
+import br.com.postech.techchallange.infra.config.MercadoPagoOptionsConfig;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,8 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	private final GerenciarClienteUseCase gerenciarClienteUseCase;
 	private final GerenciarPagamentoUseCase pagamentoUseCase;
 
-	@Override
+	private final MercadoPagoOptionsConfig mercadoPagoOptionsConfig;
+
 	public PedidoPagamentoResponse processarFakeCheckout(FakeCheckoutRequest request) {
 		PedidoPagamentoRequest pagamentoRequest = this.converterFakeCheckoutParaPedidoPagamento(request);
 		PedidoPagamentoResponse response = this.orquestradorPedidoPagamentoService.orquestrarPedidoPagamento(pagamentoRequest);
@@ -97,7 +99,10 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	}
 
 	private String getEmailPagador(FakeCheckoutRequest request) {
-		if (request.getIdCliente() == null) return "test@testuser.com";
+		if (mercadoPagoOptionsConfig.getOptions().getTestMode().equals(Boolean.TRUE)
+				|| request.getIdCliente() == null) {
+			return "test@testuser.com";
+		}
 
 		var cliente = gerenciarClienteUseCase.buscarCliente(request.getIdCliente());
 		if (cliente != null && cliente.getCpfCliente() != null) {
