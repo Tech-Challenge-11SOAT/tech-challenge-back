@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>br.com.postech</groupId>
 	<artifactId>techchallange</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<name>techchallange</name>
 	<description>Projeto para o TechChallange 1 da Pós-Tech em Software Architect na FIAP.</description>
 	<url/>
