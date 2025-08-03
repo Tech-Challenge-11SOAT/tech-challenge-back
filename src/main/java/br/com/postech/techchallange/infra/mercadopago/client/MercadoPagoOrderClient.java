@@ -1,14 +1,14 @@
 package br.com.postech.techchallange.infra.mercadopago.client;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
 import br.com.postech.techchallange.domain.constants.MercadoPagoConstants;
+import br.com.postech.techchallange.domain.model.OrdemPagamento;
+import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
 import br.com.postech.techchallange.infra.config.MercadoPagoOptionsConfig;
+import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderRequest;
+import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,12 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import br.com.postech.techchallange.domain.model.OrdemPagamento;
-import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
-import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderRequest;
-import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +33,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
 
     @Override
     public OrdemPagamento criarOrdemPagamento(OrdemPagamento ordemPagamento) {
-        log.info("Enviando requisição para Mercado Pago para external reference: {}",  ordemPagamento.getExternalReference());
+        log.info("Enviando requisição para Mercado Pago para external reference: {}", ordemPagamento.getExternalReference());
 
         try {
             String url = mercadoPagoOptionsConfig.getApi().getBaseUrl() + "/v1/orders";
