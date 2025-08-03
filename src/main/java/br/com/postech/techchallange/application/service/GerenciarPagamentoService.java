@@ -66,12 +66,11 @@ public class GerenciarPagamentoService implements GerenciarPagamentoUseCase {
         Pagamento pagamento = repository.buscarPorIdPedido(idPedido)
                 .orElseThrow(() -> new RuntimeException("Pagamento não encontrado para o pedido informado"));
 
-        Long novoStatusId;
-        if (this.verifyOrderStatus(request.getData())) {
-            novoStatusId = gerenciarStatusPagamento.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.FINALIZADO.getStatus()).getIdStatusPagamento();
-        } else {
-            novoStatusId = gerenciarStatusPagamento.buscarStatusPagamentoPorStatus(StatusPagamentoEnum.ERRO.getStatus()).getIdStatusPagamento();
-        }
+        String statusPagamento = this.verifyOrderStatus(request.getData())
+                ? StatusPagamentoEnum.FINALIZADO.getStatus()
+                : StatusPagamentoEnum.ERRO.getStatus();
+
+        Long novoStatusId = this.gerenciarStatusPagamento.buscarStatusPagamentoPorStatus(statusPagamento).getIdStatusPagamento();
 
         pagamento.setIdStatusPagamento(novoStatusId);
         pagamento.setDataPagamento(LocalDateTime.now());
