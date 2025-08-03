@@ -1,5 +1,6 @@
 package br.com.postech.techchallange.application.service;
 
+import br.com.postech.techchallange.domain.constants.MercadoPagoConstants;
 import br.com.postech.techchallange.domain.model.OrdemPagamento;
 import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.out.MercadoPagoPort;
@@ -24,13 +25,13 @@ public class CriarOrdemMercadoPagoService implements CriarOrdemMercadoPagoUseCas
         log.info("Iniciando criação de ordem de pagamento no Mercado Pago para pedido: {}", pedidoId);
 
         try {
-            String externalReference = "pedido_" + pedidoId + "_" + System.currentTimeMillis();
+            String externalReference = this.getExternalReference(pedidoId);
 
             OrdemPagamento ordemPagamento = OrdemPagamento.builder()
                     .externalReference(externalReference)
                     .totalAmount(totalAmount)
-                    .paymentMethodId("pix")
-                    .paymentMethodType("bank_transfer")
+                    .paymentMethodId(MercadoPagoConstants.MERCADO_PAGO_PAYMENT_METHOD_ID)
+                    .paymentMethodType(MercadoPagoConstants.MERCADO_PAGO_PAYMENT_METHOD_TYPE)
                     .payerEmail(payerEmail)
                     .build();
 
@@ -45,5 +46,9 @@ public class CriarOrdemMercadoPagoService implements CriarOrdemMercadoPagoUseCas
             log.error("Erro ao criar ordem de pagamento no Mercado Pago para pedido: {}", pedidoId, e);
             throw new RuntimeException("Falha ao processar pagamento via Mercado Pago", e);
         }
+    }
+
+    private String getExternalReference(Long pedidoId) {
+        return "pedido_" + pedidoId + "_" + System.currentTimeMillis();
     }
 }
