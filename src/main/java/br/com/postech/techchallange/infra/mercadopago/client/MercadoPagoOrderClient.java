@@ -5,6 +5,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.postech.techchallange.domain.constants.MercadoPagoConstants;
+import br.com.postech.techchallange.infra.config.MercadoPagoOptionsConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -29,23 +31,18 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
     @Qualifier("mercadoPagoRestTemplate")
     private final RestTemplate restTemplate;
 
-    @Value("${mercadopago.api.base-url}")
-    private String baseUrl;
-
-    @Value("${mercadopago.api.access-token}")
-    private String accessToken;
+    private final MercadoPagoOptionsConfig mercadoPagoOptionsConfig;
 
     @Override
     public OrdemPagamento criarOrdemPagamento(OrdemPagamento ordemPagamento) {
-        log.info("Enviando requisição para Mercado Pago para external reference: {}",
-                ordemPagamento.getExternalReference());
+        log.info("Enviando requisição para Mercado Pago para external reference: {}",  ordemPagamento.getExternalReference());
 
         try {
-            String url = baseUrl + "/v1/orders";
+            String url = mercadoPagoOptionsConfig.getApi().getBaseUrl() + "/v1/orders";
             String idempotencyKey = UUID.randomUUID().toString();
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Authorization", "Bearer " + mercadoPagoOptionsConfig.getApi().getAccessToken());
             headers.set("Content-Type", "application/json");
             headers.set("Accept", "application/json");
             headers.set("X-Idempotency-Key", idempotencyKey);
@@ -74,8 +71,8 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
             return mapToOrdemPagamento(responseBody);
 
         } catch (Exception e) {
-            log.error("Erro ao comunicar com Mercado Pago para external reference: {}",
-                    ordemPagamento.getExternalReference(), e);
+            log.error("Erro ao comunicar com Mercado Pago para external reference: {}", ordemPagamento.getExternalReference(), e);
+
             throw new RuntimeException("Falha na comunicação com Mercado Pago: " + e.getMessage(), e);
         }
     }
@@ -98,8 +95,11 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
 
         MercadoPagoOrderRequest.Payer payer = MercadoPagoOrderRequest.Payer.builder()
                 .email(ordemPagamento.getPayerEmail())
-                .firstName("APRO")
                 .build();
+
+        if (mercadoPagoOptionsConfig.getOptions().getTestMode().equals(Boolean.TRUE)) {
+            payer.setFirstName(MercadoPagoConstants.MERCADO_PAGO_FIRST_NAME);
+        }
 
         return MercadoPagoOrderRequest.builder()
                 .type("online")
@@ -165,8 +165,7 @@ public class MercadoPagoOrderClient implements MercadoPagoPort {
                 .currency(response.getCurrency())
                 .dateCreated(response.getCreatedDate())
                 .dateLastUpdated(response.getLastUpdatedDate())
-                .applicationId(
-                        response.getIntegrationData() != null ? response.getIntegrationData().getApplicationId() : null)
+                .applicationId(response.getIntegrationData() != null ? response.getIntegrationData().getApplicationId() : null)
                 .paymentId(paymentId)
                 .paymentStatus(paymentStatus)
                 .paymentStatusDetail(paymentStatusDetail)

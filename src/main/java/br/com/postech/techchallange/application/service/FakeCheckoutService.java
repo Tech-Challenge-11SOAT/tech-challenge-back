@@ -4,6 +4,7 @@ import br.com.postech.techchallange.adapter.in.rest.request.FakeCheckoutRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.PedidoPagamentoRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.OrderResponseDTO;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoPagamentoResponse;
+import br.com.postech.techchallange.domain.constants.MercadoPagoConstants;
 import br.com.postech.techchallange.domain.model.OrdemPagamento;
 import br.com.postech.techchallange.domain.port.in.CriarOrdemMercadoPagoUseCase;
 import br.com.postech.techchallange.domain.port.in.FakeCheckoutUseCase;
@@ -101,7 +102,7 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 	private String getEmailPagador(FakeCheckoutRequest request) {
 		if (mercadoPagoOptionsConfig.getOptions().getTestMode().equals(Boolean.TRUE)
 				|| request.getIdCliente() == null) {
-			return "test@testuser.com";
+			return MercadoPagoConstants.MERCADO_PAGO_TEST_EMAIL;
 		}
 
 		var cliente = gerenciarClienteUseCase.buscarCliente(request.getIdCliente());
@@ -109,7 +110,7 @@ public class FakeCheckoutService implements FakeCheckoutUseCase {
 			return cliente.getEmailCliente();
 		}
 
-		return "test@testuser.com";
+		return MercadoPagoConstants.MERCADO_PAGO_TEST_EMAIL;
 	}
 
 	private PedidoPagamentoRequest converterFakeCheckoutParaPedidoPagamento(FakeCheckoutRequest request) {
