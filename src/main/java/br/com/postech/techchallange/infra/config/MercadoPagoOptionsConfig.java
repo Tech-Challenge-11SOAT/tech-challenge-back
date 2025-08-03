@@ -26,6 +26,6 @@ public class MercadoPagoOptionsConfig {
     @Getter
     @Setter
     public static class Options {
-        private Boolean testMode;
+        private Boolean testMode = true;
     }
 }
