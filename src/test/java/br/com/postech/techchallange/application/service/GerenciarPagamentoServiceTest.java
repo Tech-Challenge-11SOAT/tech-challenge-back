@@ -184,8 +184,6 @@ class GerenciarPagamentoServiceTest {
         Long idStatusFinalizado = 2L;
 
         WebhookPagamentoRequest request = new WebhookPagamentoRequest();
-        request.setIdPedido(idPedido);
-        request.setStatusPagamento("APROVADO");
 
         Pagamento pagamentoExistente = Pagamento.builder()
                 .id(1L)
@@ -221,8 +219,6 @@ class GerenciarPagamentoServiceTest {
         Long idStatusErro = 3L;
 
         WebhookPagamentoRequest request = new WebhookPagamentoRequest();
-        request.setIdPedido(idPedido);
-        request.setStatusPagamento("RECUSADO");
 
         Pagamento pagamentoExistente = Pagamento.builder()
                 .id(1L)
@@ -257,8 +253,6 @@ class GerenciarPagamentoServiceTest {
         Long idPedido = 999L;
 
         WebhookPagamentoRequest request = new WebhookPagamentoRequest();
-        request.setIdPedido(idPedido);
-        request.setStatusPagamento("APROVADO");
 
         when(repository.buscarPorIdPedido(idPedido)).thenReturn(Optional.empty());
 
