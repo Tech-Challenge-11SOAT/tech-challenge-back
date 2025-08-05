@@ -4,7 +4,6 @@ import br.com.postech.techchallange.adapter.in.rest.request.AtualizarPedidoReque
 import br.com.postech.techchallange.adapter.in.rest.request.FakeCheckoutRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoCompletoResponse;
 import br.com.postech.techchallange.adapter.in.rest.response.PedidoPagamentoResponse;
-import br.com.postech.techchallange.domain.enums.StatusPedidoEnum;
 import br.com.postech.techchallange.domain.model.Pedido;
 import br.com.postech.techchallange.domain.port.in.FakeCheckoutUseCase;
 import br.com.postech.techchallange.domain.port.in.GerenciarPedidoUseCase;
@@ -101,20 +100,16 @@ public class PedidoController {
         return 99;
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/status")
     @Operation(summary = "Atualizar status do pedido")
-    public PedidoCompletoResponse atualizarStatusPedido(@PathVariable Long id, @RequestParam String novoStatus) {
-        AtualizarPedidoRequest req = AtualizarPedidoRequest.builder()
-                .id(id)
-                .status(StatusPedidoEnum.valueOf(novoStatus))
-                .build();
-        Pedido pedidoAtualizado = orquestradorPedidoPagamentoUseCase.atualizarPedidoPagamento(req);
+    public PedidoCompletoResponse atualizarStatusPedido(@RequestBody AtualizarPedidoRequest pedidoRequest) {
+        Pedido pedidoAtualizado = orquestradorPedidoPagamentoUseCase.atualizarPedidoPagamento(pedidoRequest);
         return new PedidoCompletoResponse(
                 pedidoAtualizado.getId(),
                 pedidoAtualizado.getDataPedido(),
                 pedidoAtualizado.getDataStatus(),
                 null, // cliente
-                new PedidoCompletoResponse.StatusPedido(pedidoAtualizado.getIdStatusPedido(), novoStatus),
+                new PedidoCompletoResponse.StatusPedido(pedidoAtualizado.getIdStatusPedido(), pedidoRequest.getStatus().getStatus()),
                 pedidoAtualizado.getFilaPedido() == null ? null : pedidoAtualizado.getFilaPedido().longValue()
         );
     }
