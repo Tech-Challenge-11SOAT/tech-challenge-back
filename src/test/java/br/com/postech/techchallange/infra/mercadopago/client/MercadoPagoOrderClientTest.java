@@ -1,6 +1,7 @@
 package br.com.postech.techchallange.infra.mercadopago.client;
 
 import br.com.postech.techchallange.domain.model.OrdemPagamento;
+import br.com.postech.techchallange.infra.config.MercadoPagoOptionsConfig;
 import br.com.postech.techchallange.infra.mercadopago.dto.MercadoPagoOrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -29,6 +30,15 @@ class MercadoPagoOrderClientTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private MercadoPagoOptionsConfig mercadoPagoOptionsConfig;
+
+    @Mock
+    private MercadoPagoOptionsConfig.Api api;
+
+    @Mock
+    private MercadoPagoOptionsConfig.Options options;
+
     @InjectMocks
     private MercadoPagoOrderClient mercadoPagoOrderClient;
 
@@ -37,9 +47,12 @@ class MercadoPagoOrderClientTest {
 
     @BeforeEach
     void setUp() {
-        // Configura propriedades via reflexão
-        ReflectionTestUtils.setField(mercadoPagoOrderClient, "baseUrl", "https://api.mercadopago.com");
-        ReflectionTestUtils.setField(mercadoPagoOrderClient, "accessToken", "TEST-TOKEN");
+        // Configura os mocks da configuração
+        when(mercadoPagoOptionsConfig.getApi()).thenReturn(api);
+        when(mercadoPagoOptionsConfig.getOptions()).thenReturn(options);
+        when(api.getBaseUrl()).thenReturn("https://api.mercadopago.com");
+        when(api.getAccessToken()).thenReturn("TEST-TOKEN");
+        when(options.getTestMode()).thenReturn(Boolean.TRUE);
 
         ordemPagamento = OrdemPagamento.builder()
                 .externalReference("pedido_1_123456789")
@@ -62,14 +75,22 @@ class MercadoPagoOrderClientTest {
         mockResponse.setLastUpdatedDate(OffsetDateTime.now());
 
         // Setup transactions with payment data
-        var transactions = new MercadoPagoOrderResponse();
-        var payment = new MercadoPagoOrderResponse.PaymentMethod();
+        MercadoPagoOrderResponse.Transactions transactions = new MercadoPagoOrderResponse.Transactions();
+        MercadoPagoOrderResponse.Payment payment = new MercadoPagoOrderResponse.Payment();
         payment.setId("payment_123");
+        payment.setStatus("pending");
+        payment.setAmount(new BigDecimal("100.00"));
 
-        payment.setQrCode("qr_code_data");
-        payment.setQrCodeBase64("base64_data");
-        payment.setTicketUrl("https://ticket.url");
+        MercadoPagoOrderResponse.PaymentMethod paymentMethod = new MercadoPagoOrderResponse.PaymentMethod();
+        paymentMethod.setId("pix");
+        paymentMethod.setType("bank_transfer");
+        paymentMethod.setQrCode("qr_code_data");
+        paymentMethod.setQrCodeBase64("base64_data");
+        paymentMethod.setTicketUrl("https://ticket.url");
 
+        payment.setPaymentMethod(paymentMethod);
+        transactions.setPayments(List.of(payment));
+        mockResponse.setTransactions(transactions);
     }
 
     @Test
@@ -94,10 +115,13 @@ class MercadoPagoOrderClientTest {
         assertEquals("pedido_1_123456789", resultado.getExternalReference());
         assertEquals(new BigDecimal("100.00"), resultado.getTotalAmount());
         assertEquals("pending", resultado.getStatus());
-        assertEquals("test@example.com", resultado.getPayerEmail());
         assertEquals("qr_code_data", resultado.getQrCode());
         assertEquals("base64_data", resultado.getQrCodeBase64());
         assertEquals("https://ticket.url", resultado.getTicketUrl());
+        assertEquals("payment_123", resultado.getPaymentId());
+        assertEquals("pending", resultado.getPaymentStatus());
+        assertEquals("pix", resultado.getPaymentMethodId());
+        assertEquals("bank_transfer", resultado.getPaymentMethodType());
 
         verify(restTemplate).exchange(
                 eq("https://api.mercadopago.com/v1/orders"),
