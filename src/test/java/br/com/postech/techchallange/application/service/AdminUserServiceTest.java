@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import br.com.postech.techchallange.adapter.in.rest.request.AdminRegisterRequest;
+import br.com.postech.techchallange.domain.exception.AuthenticationException;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminLogAcao;
 import br.com.postech.techchallange.domain.model.AdminRole;
@@ -174,7 +175,7 @@ class AdminUserServiceTest {
         when(userRepository.buscarPorEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        BusinessException exception = assertThrows(BusinessException.class,
+        AuthenticationException exception = assertThrows(AuthenticationException.class,
                 () -> adminUserService.autenticar(email, "qualquer"));
 
         assertEquals("Usuário ou senha inválidos", exception.getMessage());
@@ -196,7 +197,7 @@ class AdminUserServiceTest {
         when(passwordEncoder.matches(senha, senhaHash)).thenReturn(false);
 
         // Act & Assert
-        BusinessException exception = assertThrows(BusinessException.class,
+        AuthenticationException exception = assertThrows(AuthenticationException.class,
                 () -> adminUserService.autenticar(email, senha));
 
         assertEquals("Usuário ou senha inválidos", exception.getMessage());
