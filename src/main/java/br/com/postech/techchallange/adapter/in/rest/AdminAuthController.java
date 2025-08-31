@@ -10,6 +10,7 @@ import br.com.postech.techchallange.adapter.in.rest.request.ChangePasswordReques
 import br.com.postech.techchallange.adapter.in.rest.request.LoginRequest;
 import br.com.postech.techchallange.adapter.in.rest.request.RefreshTokenRequest;
 import br.com.postech.techchallange.adapter.in.rest.response.TokenResponse;
+import br.com.postech.techchallange.domain.exception.AuthenticationException;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminUser;
 import br.com.postech.techchallange.domain.port.in.AlterarSenhaAdminUseCase;
@@ -125,7 +126,7 @@ public class AdminAuthController {
 	private String extractToken(HttpServletRequest request) {
 		String header = request.getHeader("Authorization");
 		if (header == null || !header.startsWith("Bearer ")) {
-			throw new BusinessException("Token inválido ou não informado.");
+			throw new AuthenticationException("Token inválido ou não informado.");
 		}
 		return header.substring(7);
 	}

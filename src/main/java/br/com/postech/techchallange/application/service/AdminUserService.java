@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.postech.techchallange.adapter.in.rest.request.AdminRegisterRequest;
+import br.com.postech.techchallange.domain.exception.AuthenticationException;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.model.AdminLogAcao;
 import br.com.postech.techchallange.domain.model.AdminRole;
@@ -73,10 +74,10 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 	@Override
 	public AdminUser autenticar(String email, String senha) {
 		AdminUser admin = userRepository.buscarPorEmail(email)
-				.orElseThrow(() -> new BusinessException("Usuário ou senha inválidos"));
+				.orElseThrow(() -> new AuthenticationException("Usuário ou senha inválidos"));
 
 		if (!passwordEncoder.matches(senha, admin.getSenhaHash())) {
-			throw new BusinessException("Usuário ou senha inválidos");
+			throw new AuthenticationException("Usuário ou senha inválidos");
 		}
 
 		admin.setRoles(adminRoleRepository.listarRolesPorAdminId(admin.getId()));
