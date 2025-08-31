@@ -6,130 +6,219 @@ import br.com.postech.techchallange.domain.port.out.PedidoRepositoryPort;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Testes do Gerenciador de Pedidos")
 class GerenciarPedidoServiceTest {
 
-	private PedidoRepositoryPort repository;
-	private GerenciarPedidoService service;
+    private PedidoRepositoryPort repository;
+    private GerenciarPedidoService service;
 
-	@BeforeEach
-	void setUp() {
-		repository = mock(PedidoRepositoryPort.class);
-		service = new GerenciarPedidoService(repository);
-	}
-
-	// Testes para salvar informações
-	@Test
-	@DisplayName("Deve criar um pedido com sucesso")
-	void deveCriarPedidoComSucesso() {
-		Pedido pedido = criarPedido(1L);
-		when(repository.salvar(pedido)).thenReturn(pedido);
-
-		Pedido resultado = service.criarPedido(pedido);
-
-		assertNotNull(resultado);
-		assertEquals(pedido.getId(), resultado.getId());
-		verify(repository).salvar(pedido);
-	}
-
-	@Test
-	@DisplayName("Deve lançar excecao ao tentar salvar pedido e ocorrer falha")
-	void deveFalharAoCriarPedido() {
-		Pedido pedido = criarPedido(1L);
-		when(repository.salvar(pedido)).thenThrow(new RuntimeException("Erro ao salvar"));
-
-		assertThrows(RuntimeException.class, () -> service.criarPedido(pedido));
-		verify(repository).salvar(pedido);
-	}
-
-	// Testes para buscar pedido por ID
-	@Test
-	@DisplayName("Deve retornar o pedido pelo ID")
-	void deveBuscarPedidoPorIdComSucesso() {
-		Pedido pedido = criarPedido(1L);
-		when(repository.buscarPorId(1L)).thenReturn(Optional.of(pedido));
-
-		Pedido resultado = service.buscarPedido(1L);
-
-		assertNotNull(resultado);
-		assertEquals(pedido.getId(), resultado.getId());
-		verify(repository).buscarPorId(1L);
-	}
-
-	@Test
-    @DisplayName("Deve lançar exceção se pedido não for encontrado pelo ID")
-    void deveLancarExcecaoSePedidoNaoForEncontrado() {
-        when(repository.buscarPorId(99L)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> service.buscarPedido(99L));
-        verify(repository).buscarPorId(99L);
+    @BeforeEach
+    void setUp() {
+        repository = mock(PedidoRepositoryPort.class);
+        service = new GerenciarPedidoService(repository);
     }
 
-	// Testes para listar os pedidos
-	@Test
-	@DisplayName("Deve listar todos os pedidos")
-	void deveListarTodosOsPedidos() {
-		PedidoCompletoResponse pedido1 = criarPedidoCompletoResponse(1L);
-		PedidoCompletoResponse pedido2 = criarPedidoCompletoResponse(2L);
-		when(repository.listarTodos()).thenReturn(List.of(pedido1, pedido2));
+    @Nested
+    @DisplayName("Testes de Criação de Pedido")
+    class CriacaoPedido {
+        @Test
+        @DisplayName("Deve criar um pedido com cliente com sucesso")
+        void deveCriarPedidoComClienteComSucesso() {
+            Pedido pedido = criarPedido(1L);
+            pedido.setIdCliente(1L);
+            when(repository.salvar(pedido)).thenReturn(pedido);
 
-		List<PedidoCompletoResponse> pedidos = service.listarPedidos();
+            Pedido resultado = service.criarPedido(pedido);
 
-		assertEquals(2, pedidos.size());
-		verify(repository).listarTodos();
-	}
+            assertNotNull(resultado);
+            assertEquals(pedido.getId(), resultado.getId());
+            assertEquals(1L, resultado.getIdCliente());
+            verify(repository).salvar(pedido);
+        }
 
-	@Test
-    @DisplayName("Deve lançar exceção se não houver pedidos")
-    void deveLancarExcecaoSeNaoHouverPedidos() {
-        when(repository.listarTodos()).thenReturn(List.of());
+        @Test
+        @DisplayName("Deve criar pedido anônimo e definir fila quando cliente for nulo")
+        void deveCriarPedidoAnonimoComFilaQuandoClienteNulo() {
+            Pedido pedido = criarPedido(1L);
+            pedido.setIdCliente(null);
+            when(repository.buscarMaxFilaPedidoAnonimo()).thenReturn(5);
+            when(repository.salvar(any(Pedido.class))).thenReturn(pedido);
 
-        assertThrows(EntityNotFoundException.class, () -> service.listarPedidos());
-        verify(repository).listarTodos();
+            Pedido resultado = service.criarPedido(pedido);
+
+            assertNotNull(resultado);
+            verify(repository).buscarMaxFilaPedidoAnonimo();
+            verify(repository).salvar(any(Pedido.class));
+        }
+
+        @Test
+        @DisplayName("Deve criar pedido anônimo com fila 1 quando não houver pedidos anteriores")
+        void deveCriarPedidoAnonimoComFilaUmQuandoNaoHouverPedidosAnteriores() {
+            Pedido pedido = criarPedido(1L);
+            pedido.setIdCliente(null);
+            when(repository.buscarMaxFilaPedidoAnonimo()).thenReturn(null);
+            when(repository.salvar(any(Pedido.class))).thenReturn(pedido);
+
+            service.criarPedido(pedido);
+
+            verify(repository).buscarMaxFilaPedidoAnonimo();
+            verify(repository).salvar(any(Pedido.class));
+        }
     }
 
-	@Test
-	@DisplayName("Deve listar pedidos por status")
-	void deveListarPedidosPorStatus() {
-		PedidoCompletoResponse pedido1 = criarPedidoCompletoResponse(1L);
-		PedidoCompletoResponse pedido2 = criarPedidoCompletoResponse(2L);
-		when(repository.listarPorStatus(1L)).thenReturn(List.of(pedido1, pedido2));
+    @Nested
+    @DisplayName("Testes de Atualização de Status")
+    class AtualizacaoStatus {
+        @Test
+        @DisplayName("Deve atualizar status do pedido com sucesso")
+        void deveAtualizarStatusComSucesso() {
+            Pedido pedido = criarPedido(1L);
+            Pedido pedidoAtualizado = criarPedido(1L);
+            pedidoAtualizado.setIdStatusPedido(2L);
 
-		List<PedidoCompletoResponse> pedidos = service.listarPorStatus(1L);
+            when(repository.atualizar(pedido, 2L)).thenReturn(pedidoAtualizado);
 
-		assertEquals(2, pedidos.size());
-		verify(repository).listarPorStatus(1L);
-	}
+            Pedido resultado = service.atualizarPedido(pedido, 2L);
 
-	@Test
-    @DisplayName("Deve lançar exceção se não houver pedidos com o status")
-	void deveLancarExcecaoSeNaoHouverPedidosComStatus() {
-	    when(repository.listarPorStatus(1L)).thenReturn(List.of());
-	
-	    assertThrows(EntityNotFoundException.class, () -> service.listarPorStatus(1L));
-	    verify(repository).listarPorStatus(1L);
-	}
+            assertNotNull(resultado);
+            assertEquals(2L, resultado.getIdStatusPedido());
+            verify(repository).atualizar(pedido, 2L);
+        }
+    }
 
-	private Pedido criarPedido(Long id) {
-		return new Pedido(id, 10L, LocalDateTime.now(), 1L, LocalDateTime.now(), 123 // valor fictício para filaPedido
-		);
-	}
+    @Nested
+    @DisplayName("Testes de Consulta de Pedidos")
+    class ConsultaPedidos {
+        @Test
+        @DisplayName("Deve retornar lista de pedidos completos")
+        void deveRetornarListaPedidosCompletos() {
+            List<PedidoCompletoResponse> pedidos = Arrays.asList(
+                    criarPedidoCompletoResponse(1L),
+                    criarPedidoCompletoResponse(2L),
+                    criarPedidoCompletoResponse(3L)
+            );
 
-	private PedidoCompletoResponse criarPedidoCompletoResponse(Long id) {
-		PedidoCompletoResponse.Cliente cliente = new PedidoCompletoResponse.Cliente(10L, "Joao da Silva",
-				"joao@email.com");
+            when(repository.listarTodos()).thenReturn(pedidos);
 
-		PedidoCompletoResponse.StatusPedido status = new PedidoCompletoResponse.StatusPedido(1L, "Recebido");
+            List<PedidoCompletoResponse> resultados = service.listarPedidos();
 
-		return new PedidoCompletoResponse(id, LocalDateTime.now(), LocalDateTime.now(), cliente, status, 123L);
-	}
+            assertNotNull(resultados);
+            assertEquals(3, resultados.size());
+            verify(repository).listarTodos();
+        }
 
+        @Test
+        @DisplayName("Deve lançar exceção quando não houver pedidos")
+        void deveLancarExcecaoQuandoNaoHouverPedidos() {
+            when(repository.listarTodos()).thenReturn(List.of());
+
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> service.listarPedidos());
+
+            assertEquals("Nenhum pedido encontrado", exception.getMessage());
+            verify(repository).listarTodos();
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando lista for nula")
+        void deveLancarExcecaoQuandoListaForNula() {
+            when(repository.listarTodos()).thenReturn(null);
+
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> service.listarPedidos());
+
+            assertEquals("Nenhum pedido encontrado", exception.getMessage());
+            verify(repository).listarTodos();
+        }
+
+        @Test
+        @DisplayName("Deve buscar pedido por ID com sucesso")
+        void deveBuscarPedidoPorId() {
+            Long id = 1L;
+            Pedido pedido = criarPedido(id);
+            when(repository.buscarPorId(id)).thenReturn(Optional.of(pedido));
+
+            Pedido resultado = service.buscarPedido(id);
+
+            assertNotNull(resultado);
+            assertEquals(id, resultado.getId());
+            verify(repository).buscarPorId(id);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao buscar pedido inexistente")
+        void deveLancarExcecaoAoBuscarPedidoInexistente() {
+            Long idInexistente = 999L;
+            when(repository.buscarPorId(idInexistente)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> service.buscarPedido(idInexistente));
+
+            assertTrue(exception.getMessage().contains("não encontrato"));
+            verify(repository).buscarPorId(idInexistente);
+        }
+
+        @Test
+        @DisplayName("Deve listar pedidos por status")
+        void deveListarPedidosPorStatus() {
+            Long statusId = 1L;
+            List<PedidoCompletoResponse> pedidos = Arrays.asList(
+                    criarPedidoCompletoResponse(1L),
+                    criarPedidoCompletoResponse(2L)
+            );
+
+            when(repository.listarPorStatus(statusId)).thenReturn(pedidos);
+
+            List<PedidoCompletoResponse> resultados = service.listarPorStatus(statusId);
+
+            assertNotNull(resultados);
+            assertEquals(2, resultados.size());
+            verify(repository).listarPorStatus(statusId);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando não houver pedidos para o status")
+        void deveLancarExcecaoQuandoNaoHouverPedidosParaStatus() {
+            Long statusId = 999L;
+            when(repository.listarPorStatus(statusId)).thenReturn(List.of());
+
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> service.listarPorStatus(statusId));
+
+            assertTrue(exception.getMessage().contains("status 999"));
+            verify(repository).listarPorStatus(statusId);
+        }
+    }
+
+    private Pedido criarPedido(Long id) {
+        Pedido pedido = new Pedido();
+        pedido.setId(id);
+        pedido.setIdCliente(1L);
+        pedido.setIdStatusPedido(1L);
+        pedido.setFilaPedido(1);
+        return pedido;
+    }
+
+    private PedidoCompletoResponse criarPedidoCompletoResponse(Long id) {
+        return new PedidoCompletoResponse(
+                id,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                new PedidoCompletoResponse.Cliente(1L, "Cliente Teste", "cliente@teste.com"),
+                new PedidoCompletoResponse.StatusPedido(1L, "Em Preparação"),
+                1L
+        );
+    }
 }

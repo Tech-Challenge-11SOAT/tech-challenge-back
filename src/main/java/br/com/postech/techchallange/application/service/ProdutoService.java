@@ -20,6 +20,7 @@ public class ProdutoService implements ProdutoUseCase {
 
 	@Override
 	public Produto criarProduto(Produto produto) {
+		validarProduto(produto);
 		return this.repository.salvar(produto);
 	}
 
@@ -27,6 +28,8 @@ public class ProdutoService implements ProdutoUseCase {
 	public Produto atualizarProduto(Long id, Produto produtoAtualizado) {
 		Produto produtoExistente = this.repository.buscarPorId(id)
 				.orElseThrow(() -> new IllegalArgumentException("Produto não encontrado"));
+
+		validarProdutoParaAtualizacao(id, produtoAtualizado);
 
 		produtoExistente.setNome(produtoAtualizado.getNome());
 		produtoExistente.setDescricao(produtoAtualizado.getDescricao());
@@ -60,5 +63,27 @@ public class ProdutoService implements ProdutoUseCase {
 		}
 		
 		return prods;
+	}
+
+	private void validarProduto(Produto produto) {
+		if (produto.getNome() == null || produto.getNome().trim().isEmpty()) {
+			throw new BusinessException("Nome do produto não pode ser vazio");
+		}
+
+		if (produto.getIdCategoria() == null) {
+			throw new BusinessException("Categoria do produto é obrigatória");
+		}
+
+		if (produto.getIdCategoria() <= 0) {
+			throw new BusinessException("Categoria do produto inválida");
+		}
+	}
+
+	private void validarProdutoParaAtualizacao(Long id, Produto produto) {
+		validarProduto(produto);
+
+		if (produto.getId() != null && !produto.getId().equals(id)) {
+			throw new BusinessException("ID do produto não pode ser alterado");
+		}
 	}
 }
