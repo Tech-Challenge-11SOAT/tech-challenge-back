@@ -7,12 +7,22 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.postech.techchallange.adapter.in.rest.response.ErrorResponse;
+import br.com.postech.techchallange.domain.exception.AuthenticationException;
 import br.com.postech.techchallange.domain.exception.BusinessException;
 import br.com.postech.techchallange.domain.exception.InvalidPaymentAmountException;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+		ErrorResponse errorResponse = new ErrorResponse(
+				HttpStatus.UNAUTHORIZED.value(),
+				"Não autorizado",
+				ex.getMessage());
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+	}
 
 	@ExceptionHandler(BusinessException.class)
 	public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {

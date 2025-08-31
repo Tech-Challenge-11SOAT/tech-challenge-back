@@ -24,12 +24,15 @@ public class CriarOrdemMercadoPagoService implements CriarOrdemMercadoPagoUseCas
         try {
             String externalReference = this.getExternalReference(pedidoId);
 
+            // Define email padrão se não fornecido
+            String emailPagador = payerEmail != null ? payerEmail : MercadoPagoConstants.MERCADO_PAGO_TEST_EMAIL;
+
             OrdemPagamento ordemPagamento = OrdemPagamento.builder()
                     .externalReference(externalReference)
                     .totalAmount(totalAmount)
                     .paymentMethodId(MercadoPagoConstants.MERCADO_PAGO_PAYMENT_METHOD_ID)
                     .paymentMethodType(MercadoPagoConstants.MERCADO_PAGO_PAYMENT_METHOD_TYPE)
-                    .payerEmail(payerEmail)
+                    .payerEmail(emailPagador)
                     .build();
 
             OrdemPagamento ordemCriada = mercadoPagoPort.criarOrdemPagamento(ordemPagamento);
