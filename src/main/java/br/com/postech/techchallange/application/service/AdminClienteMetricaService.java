@@ -1,5 +1,15 @@
 package br.com.postech.techchallange.application.service;
 
+import br.com.postech.techchallange.adapter.in.rest.response.ClienteMetricaResponse;
+import br.com.postech.techchallange.adapter.in.rest.response.ClienteRankingDTO;
+import br.com.postech.techchallange.adapter.in.rest.response.VendaProdutoCategoriaDTO;
+import br.com.postech.techchallange.domain.model.*;
+import br.com.postech.techchallange.domain.port.in.AdminClienteMetricaUseCase;
+import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
+import br.com.postech.techchallange.domain.port.out.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -7,280 +17,261 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-
-import br.com.postech.techchallange.adapter.in.rest.response.ClienteMetricaResponse;
-import br.com.postech.techchallange.adapter.in.rest.response.ClienteRankingDTO;
-import br.com.postech.techchallange.adapter.in.rest.response.VendaProdutoCategoriaDTO;
-import br.com.postech.techchallange.domain.model.Categoria;
-import br.com.postech.techchallange.domain.model.Cliente;
-import br.com.postech.techchallange.domain.model.Pedido;
-import br.com.postech.techchallange.domain.model.PedidoProduto;
-import br.com.postech.techchallange.domain.model.Produto;
-import br.com.postech.techchallange.domain.port.in.AdminClienteMetricaUseCase;
-import br.com.postech.techchallange.domain.port.in.GerenciarStatusPedidoUseCase;
-import br.com.postech.techchallange.domain.port.out.CategoriaRepositoryPort;
-import br.com.postech.techchallange.domain.port.out.ClienteRepositoryPort;
-import br.com.postech.techchallange.domain.port.out.PedidoProdutoRepositoryPort;
-import br.com.postech.techchallange.domain.port.out.PedidoRepositoryPort;
-import br.com.postech.techchallange.domain.port.out.ProdutoRepositoryPort;
-import lombok.RequiredArgsConstructor;
-
 @Service
 @RequiredArgsConstructor
 public class AdminClienteMetricaService implements AdminClienteMetricaUseCase {
 
-	private final PedidoRepositoryPort pedidoRepository;
-	private final ClienteRepositoryPort clienteRepository;
-	private final GerenciarStatusPedidoUseCase gerenciarStatusPedidoUseCase;
-	private final PedidoProdutoRepositoryPort pedidoProdutoRepositoryPort;
-	private final ProdutoRepositoryPort produtoRepositoryPort;
-	private final CategoriaRepositoryPort categoriaRepositoryPort;
+    private final PedidoRepositoryPort pedidoRepository;
+    private final ClienteRepositoryPort clienteRepository;
+    private final GerenciarStatusPedidoUseCase gerenciarStatusPedidoUseCase;
+    private final PedidoProdutoRepositoryPort pedidoProdutoRepositoryPort;
+    private final ProdutoRepositoryPort produtoRepositoryPort;
+    private final CategoriaRepositoryPort categoriaRepositoryPort;
 
-	@Override
-	public ClienteMetricaResponse obterMetricasCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
-		List<Pedido> pedidos;
-		Cliente cliente = null;
+    @Override
+    public ClienteMetricaResponse obterMetricasCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+        List<Pedido> pedidos;
+        Cliente cliente = null;
 
-		if (idCliente == null) {
-			pedidos = pedidoRepository.listarPorCliente(null);
-		} else {
-			cliente = clienteRepository.buscarPorId(idCliente).orElse(null);
-			pedidos = pedidoRepository.listarPorCliente(idCliente);
-		}
+        if (idCliente == null) {
+            pedidos = pedidoRepository.listarPorCliente(null);
+        } else {
+            cliente = clienteRepository.buscarPorId(idCliente).orElse(null);
+            pedidos = pedidoRepository.listarPorCliente(idCliente);
+        }
 
-		if (dataInicio != null) {
-			pedidos = pedidos.stream()
-					.filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
-					.collect(Collectors.toList());
-		}
-		if (dataFim != null) {
-			pedidos = pedidos.stream()
-					.filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
-					.collect(Collectors.toList());
-		}
-		
-		int totalPedidos = pedidos.size();
-		BigDecimal totalGasto = pedidos.stream()
-				.map(p -> this.calcularValorTotalPedido(p.getId()))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (dataInicio != null) {
+            pedidos = pedidos.stream()
+                    .filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
+                    .collect(Collectors.toList());
+        }
+        if (dataFim != null) {
+            pedidos = pedidos.stream()
+                    .filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
+                    .collect(Collectors.toList());
+        }
 
-		LocalDateTime dataUltimoPedido = pedidos.stream()
-				.max(Comparator.comparing(Pedido::getDataPedido))
-				.map(Pedido::getDataPedido)
-				.orElse(null);
+        int totalPedidos = pedidos.size();
+        BigDecimal totalGasto = pedidos.stream()
+                .map(p -> this.calcularValorTotalPedido(p.getId()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		Long idUltimoPedido = pedidos.stream()
-				.max(Comparator.comparing(Pedido::getDataPedido))
-				.map(Pedido::getId)
-				.orElse(null);
+        LocalDateTime dataUltimoPedido = pedidos.stream()
+                .max(Comparator.comparing(Pedido::getDataPedido))
+                .map(Pedido::getDataPedido)
+                .orElse(null);
 
-		List<ClienteMetricaResponse.PedidoResumo> pedidosResumo = pedidos.stream().map(p -> {
-			BigDecimal valor = calcularValorTotalPedido(p.getId());
-			String status = "";
+        Long idUltimoPedido = pedidos.stream()
+                .max(Comparator.comparing(Pedido::getDataPedido))
+                .map(Pedido::getId)
+                .orElse(null);
 
-			if (p.getIdStatusPedido() != null) {
-				status = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(p.getIdStatusPedido()).getNomeStatus();
-			}
-			return ClienteMetricaResponse.PedidoResumo.builder()
-					.idPedido(p.getId())
-					.dataPedido(p.getDataPedido())
-					.valorTotal(valor)
-					.status(status)
-					.build();
+        List<ClienteMetricaResponse.PedidoResumo> pedidosResumo = pedidos.stream().map(p -> {
+            BigDecimal valor = calcularValorTotalPedido(p.getId());
+            String status = "";
 
-		}).collect(Collectors.toList());
-		return ClienteMetricaResponse.builder()
-				.idCliente(cliente != null ? cliente.getId() : null)
-				.nome(cliente != null ? cliente.getNomeCliente() : "Não identificado")
-				.email(cliente != null ? cliente.getEmailCliente() : null)
-				.totalPedidos(totalPedidos)
-				.totalGasto(totalGasto).dataUltimoPedido(dataUltimoPedido)
-				.idUltimoPedido(idUltimoPedido)
-				.pedidos(pedidosResumo)
-				.build();
-	}
+            if (p.getIdStatusPedido() != null) {
+                status = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(p.getIdStatusPedido()).getNomeStatus();
+            }
+            return ClienteMetricaResponse.PedidoResumo.builder()
+                    .idPedido(p.getId())
+                    .dataPedido(p.getDataPedido())
+                    .valorTotal(valor)
+                    .status(status)
+                    .build();
 
-	@Override
-	public ClienteMetricaResponse obterMetricasCliente(Long idCliente) {
-		return this.obterMetricasCliente(idCliente, null, null);
-	}
+        }).collect(Collectors.toList());
+        return ClienteMetricaResponse.builder()
+                .idCliente(cliente != null ? cliente.getId() : null)
+                .nome(cliente != null ? cliente.getNomeCliente() : "Não identificado")
+                .email(cliente != null ? cliente.getEmailCliente() : null)
+                .totalPedidos(totalPedidos)
+                .totalGasto(totalGasto).dataUltimoPedido(dataUltimoPedido)
+                .idUltimoPedido(idUltimoPedido)
+                .pedidos(pedidosResumo)
+                .build();
+    }
 
-	@Override
-	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
-		List<Pedido> pedidos;
-		if (idCliente == null) {
-			pedidos = pedidoRepository.listarPorCliente(null);
-		} else {
-			pedidos = pedidoRepository.listarPorCliente(idCliente);
-		}
+    @Override
+    public ClienteMetricaResponse obterMetricasCliente(Long idCliente) {
+        return this.obterMetricasCliente(idCliente, null, null);
+    }
 
-		if (dataInicio != null) {
-			pedidos = pedidos.stream()
-					.filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
-					.collect(Collectors.toList());
-		}
-		if (dataFim != null) {
-			pedidos = pedidos.stream()
-					.filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
-					.collect(Collectors.toList());
-		}
-		return pedidos.stream().map(p -> {
-			BigDecimal valor = calcularValorTotalPedido(p.getId());
-			String status = "";
+    @Override
+    public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+        List<Pedido> pedidos;
+        if (idCliente == null) {
+            pedidos = pedidoRepository.listarPorCliente(null);
+        } else {
+            pedidos = pedidoRepository.listarPorCliente(idCliente);
+        }
 
-			if (p.getIdStatusPedido() != null) {
-				status = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(p.getIdStatusPedido()).getNomeStatus();
-			}
-			return ClienteMetricaResponse.PedidoResumo.builder()
-					.idPedido(p.getId())
-					.dataPedido(p.getDataPedido())
-					.valorTotal(valor)
-					.status(status)
-					.build();
-		}).collect(Collectors.toList());
-	}
+        if (dataInicio != null) {
+            pedidos = pedidos.stream()
+                    .filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
+                    .collect(Collectors.toList());
+        }
+        if (dataFim != null) {
+            pedidos = pedidos.stream()
+                    .filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
+                    .collect(Collectors.toList());
+        }
+        return pedidos.stream().map(p -> {
+            BigDecimal valor = calcularValorTotalPedido(p.getId());
+            String status = "";
 
-	@Override
-	public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente) {
-		return this.listarPedidosCliente(idCliente, null, null);
-	}
+            if (p.getIdStatusPedido() != null) {
+                status = gerenciarStatusPedidoUseCase.buscarStatusPedidoPorId(p.getIdStatusPedido()).getNomeStatus();
+            }
+            return ClienteMetricaResponse.PedidoResumo.builder()
+                    .idPedido(p.getId())
+                    .dataPedido(p.getDataPedido())
+                    .valorTotal(valor)
+                    .status(status)
+                    .build();
+        }).collect(Collectors.toList());
+    }
 
-	@Override
-	public String exportarPedidosClienteCsv(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
-		List<ClienteMetricaResponse.PedidoResumo> pedidos = this.listarPedidosCliente(idCliente, dataInicio, dataFim);
-		StringBuilder csv = new StringBuilder();
+    @Override
+    public List<ClienteMetricaResponse.PedidoResumo> listarPedidosCliente(Long idCliente) {
+        return this.listarPedidosCliente(idCliente, null, null);
+    }
 
-		csv.append("ID Pedido,Data Pedido,Valor Total,Status\n");
-		pedidos.forEach(p -> csv.append(p.getIdPedido()).append(",").append(p.getDataPedido()).append(",").append(p.getValorTotal()).append(",").append(p.getStatus()).append("\n"));
-		return csv.toString();
-	}
+    @Override
+    public String exportarPedidosClienteCsv(Long idCliente, LocalDateTime dataInicio, LocalDateTime dataFim) {
+        List<ClienteMetricaResponse.PedidoResumo> pedidos = this.listarPedidosCliente(idCliente, dataInicio, dataFim);
+        StringBuilder csv = new StringBuilder();
 
-	@Override
-	public Object relatorioVendasPorProdutoCategoria(LocalDateTime dataInicio, LocalDateTime dataFim, Long idProduto, Long idCategoria) {
-		List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
-		pedidos = this.filtrarPedidosPorPeriodo(pedidos, dataInicio, dataFim);
+        csv.append("ID Pedido,Data Pedido,Valor Total,Status\n");
+        pedidos.forEach(p -> csv.append(p.getIdPedido()).append(",").append(p.getDataPedido()).append(",").append(p.getValorTotal()).append(",").append(p.getStatus()).append("\n"));
+        return csv.toString();
+    }
 
-		var resultado = pedidos.stream()
-				.flatMap(p -> pedidoProdutoRepositoryPort.buscarPorIdPedido(p.getId()).stream()
-						.filter(pp -> filtrarPorProdutoECategoria(pp, idProduto, idCategoria))
-						.map(pp -> toVendaProdutoCategoriaDTO(pp, p)))
-				.collect(Collectors.toList());
-		return resultado;
-	}
+    @Override
+    public Object relatorioVendasPorProdutoCategoria(LocalDateTime dataInicio, LocalDateTime dataFim, Long idProduto, Long idCategoria) {
+        List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
+        pedidos = this.filtrarPedidosPorPeriodo(pedidos, dataInicio, dataFim);
 
-	private List<Pedido> filtrarPedidosPorPeriodo(List<Pedido> pedidos, LocalDateTime dataInicio,
-			LocalDateTime dataFim) {
-		return pedidos.stream().filter(
-				pedido -> (dataInicio == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio)))
-						&& (dataFim == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))))
-				.collect(Collectors.toList());
-	}
+        var resultado = pedidos.stream()
+                .flatMap(p -> pedidoProdutoRepositoryPort.buscarPorIdPedido(p.getId()).stream()
+                        .filter(pp -> filtrarPorProdutoECategoria(pp, idProduto, idCategoria))
+                        .map(pp -> toVendaProdutoCategoriaDTO(pp, p)))
+                .collect(Collectors.toList());
+        return resultado;
+    }
 
-	private boolean filtrarPorProdutoECategoria(br.com.postech.techchallange.domain.model.PedidoProduto pedidoProduto, Long idProduto, Long idCategoria) {
-		if (idProduto != null && !pedidoProduto.getIdProduto().equals(idProduto)) {
-			return false;
-		}
-		if (idCategoria != null) {
-			Produto prod = produtoRepositoryPort.buscarPorId(pedidoProduto.getIdProduto()).orElse(null);
-			if (prod == null || prod.getIdCategoria() == null || !prod.getIdCategoria().equals(idCategoria)) {
-				return false;
-			}
-		}
-		return true;
-	}
+    private List<Pedido> filtrarPedidosPorPeriodo(List<Pedido> pedidos, LocalDateTime dataInicio,
+                                                  LocalDateTime dataFim) {
+        return pedidos.stream().filter(
+                        pedido -> (dataInicio == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio)))
+                                && (dataFim == null || (pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))))
+                .collect(Collectors.toList());
+    }
 
-	private VendaProdutoCategoriaDTO toVendaProdutoCategoriaDTO(PedidoProduto pedidoProduto, Pedido pedido) {
-		Produto prod = produtoRepositoryPort.buscarPorId(pedidoProduto.getIdProduto()).orElse(null);
-		String nomeProduto = prod != null
-				? prod.getNome()
-				: null;
+    private boolean filtrarPorProdutoECategoria(br.com.postech.techchallange.domain.model.PedidoProduto pedidoProduto, Long idProduto, Long idCategoria) {
+        if (idProduto != null && !pedidoProduto.getIdProduto().equals(idProduto)) {
+            return false;
+        }
+        if (idCategoria != null) {
+            Produto prod = produtoRepositoryPort.buscarPorId(pedidoProduto.getIdProduto()).orElse(null);
+            if (prod == null || prod.getIdCategoria() == null || !prod.getIdCategoria().equals(idCategoria)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-		Long idCat = prod != null
-				? prod.getIdCategoria()
-				: null;
+    private VendaProdutoCategoriaDTO toVendaProdutoCategoriaDTO(PedidoProduto pedidoProduto, Pedido pedido) {
+        Produto prod = produtoRepositoryPort.buscarPorId(pedidoProduto.getIdProduto()).orElse(null);
+        String nomeProduto = prod != null
+                ? prod.getNome()
+                : null;
 
-		String nomeCategoria = this.buscarNomeCategoria(idCat);
+        Long idCat = prod != null
+                ? prod.getIdCategoria()
+                : null;
 
-		return new VendaProdutoCategoriaDTO(
-				pedidoProduto.getIdProduto(),
-				nomeProduto,
-				idCat,
-				nomeCategoria,
-				pedidoProduto.getQuantidade(),
-				pedidoProduto.getPrecoUnitario().multiply(BigDecimal.valueOf(pedidoProduto.getQuantidade())), pedido.getDataPedido()
-		);
-	}
+        String nomeCategoria = this.buscarNomeCategoria(idCat);
 
-	private String buscarNomeCategoria(Long idCategoria) {
-		if (idCategoria == null) {
-			return null;
-		}
-		return categoriaRepositoryPort.buscarPorId(idCategoria)
-				.map(Categoria::getNome).orElse(null);
-	}
+        return new VendaProdutoCategoriaDTO(
+                pedidoProduto.getIdProduto(),
+                nomeProduto,
+                idCat,
+                nomeCategoria,
+                pedidoProduto.getQuantidade(),
+                pedidoProduto.getPrecoUnitario().multiply(BigDecimal.valueOf(pedidoProduto.getQuantidade())), pedido.getDataPedido()
+        );
+    }
 
-	@Override
-	public List<ClienteRankingDTO> rankingClientesMaisAtivos(LocalDateTime dataInicio, LocalDateTime dataFim, int limit) {
-		List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
-		if (dataInicio != null) {
-			pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio))
-					.collect(Collectors.toList());
-		}
-		if (dataFim != null) {
-			pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))
-					.collect(Collectors.toList());
-		}
+    private String buscarNomeCategoria(Long idCategoria) {
+        if (idCategoria == null) {
+            return null;
+        }
+        return categoriaRepositoryPort.buscarPorId(idCategoria)
+                .map(Categoria::getNome).orElse(null);
+    }
 
-		var ranking = pedidos.stream()
-				.filter(pedido -> pedido.getIdCliente() != null)
-				.collect(Collectors.groupingBy(Pedido::getIdCliente, Collectors.counting()))
-				.entrySet().stream()
-				.sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
-				.limit(limit)
-				.map(entry -> {
-					Long idCliente = entry.getKey();
-					Long totalPedidos = entry.getValue();
-					var cliente = clienteRepository.buscarPorId(idCliente).orElse(null);
-					return new ClienteRankingDTO(
-						idCliente,
-						cliente != null ? cliente.getNomeCliente() : null,
-						cliente != null ? cliente.getEmailCliente() : null,
-						totalPedidos
-					);
-				})
-				.collect(Collectors.toList());
-		return ranking;
-	}
+    @Override
+    public List<ClienteRankingDTO> rankingClientesMaisAtivos(LocalDateTime dataInicio, LocalDateTime dataFim, int limit) {
+        List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
+        if (dataInicio != null) {
+            pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isBefore(dataInicio))
+                    .collect(Collectors.toList());
+        }
+        if (dataFim != null) {
+            pedidos = pedidos.stream().filter(pedido -> pedido.getDataPedido() != null && !pedido.getDataPedido().isAfter(dataFim))
+                    .collect(Collectors.toList());
+        }
 
-	@Override
-	public Map<String, Object> relatorioConversaoClientes(LocalDateTime dataInicio, LocalDateTime dataFim) {
-		List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
-		if (dataInicio != null) {
-			pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
-					.collect(Collectors.toList());
-		}
-		if (dataFim != null) {
-			pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
-					.collect(Collectors.toList());
-		}
+        var ranking = pedidos.stream()
+                .filter(pedido -> pedido.getIdCliente() != null)
+                .collect(Collectors.groupingBy(Pedido::getIdCliente, Collectors.counting()))
+                .entrySet().stream()
+                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+                .limit(limit)
+                .map(entry -> {
+                    Long idCliente = entry.getKey();
+                    Long totalPedidos = entry.getValue();
+                    var cliente = clienteRepository.buscarPorId(idCliente).orElse(null);
+                    return new ClienteRankingDTO(
+                            idCliente,
+                            cliente != null ? cliente.getNomeCliente() : null,
+                            cliente != null ? cliente.getEmailCliente() : null,
+                            totalPedidos
+                    );
+                })
+                .collect(Collectors.toList());
+        return ranking;
+    }
 
-		long totalPedidos = pedidos.size();
-		long pedidosIdentificados = pedidos.stream().filter(p -> p.getIdCliente() != null).count();
-		long pedidosAnonimos = totalPedidos - pedidosIdentificados;
-		double taxaConversao = totalPedidos > 0 ? (double) pedidosIdentificados / totalPedidos : 0.0;
+    @Override
+    public Map<String, Object> relatorioConversaoClientes(LocalDateTime dataInicio, LocalDateTime dataFim) {
+        List<Pedido> pedidos = pedidoRepository.listarPorCliente(null);
+        if (dataInicio != null) {
+            pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isBefore(dataInicio))
+                    .collect(Collectors.toList());
+        }
+        if (dataFim != null) {
+            pedidos = pedidos.stream().filter(p -> p.getDataPedido() != null && !p.getDataPedido().isAfter(dataFim))
+                    .collect(Collectors.toList());
+        }
 
-		return Map.of(
-				"totalPedidos", totalPedidos,
-				"pedidosIdentificados", pedidosIdentificados,
-				"pedidosAnonimos", pedidosAnonimos,
-				"taxaConversao", taxaConversao
-		);
-	}
+        long totalPedidos = pedidos.size();
+        long pedidosIdentificados = pedidos.stream().filter(p -> p.getIdCliente() != null).count();
+        long pedidosAnonimos = totalPedidos - pedidosIdentificados;
+        double taxaConversao = totalPedidos > 0 ? (double) pedidosIdentificados / totalPedidos : 0.0;
 
-	private BigDecimal calcularValorTotalPedido(Long idPedido) {
-		return pedidoProdutoRepositoryPort.buscarPorIdPedido(idPedido).stream()
-				.map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
+        return Map.of(
+                "totalPedidos", totalPedidos,
+                "pedidosIdentificados", pedidosIdentificados,
+                "pedidosAnonimos", pedidosAnonimos,
+                "taxaConversao", taxaConversao
+        );
+    }
+
+    private BigDecimal calcularValorTotalPedido(Long idPedido) {
+        return pedidoProdutoRepositoryPort.buscarPorIdPedido(idPedido).stream()
+                .map(prod -> prod.getPrecoUnitario().multiply(BigDecimal.valueOf(prod.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

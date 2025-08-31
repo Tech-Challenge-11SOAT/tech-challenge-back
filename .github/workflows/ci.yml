@@ -3,7 +3,11 @@ name: Java CI
 on:
   pull_request:
     branches:
-      - main
+      - develop
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -22,7 +26,10 @@ jobs:
           cache: maven
 
       - name: Compilar projeto
-        run: mvn clean install -DskipTests=true
+        run: mvn clean compile -DskipTests=true
+
+      - name: Fazer package
+        run: mvn package -DskipTests=true
 
   unit-tests:
     name: Testes unitários
@@ -40,5 +47,15 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Rodar testes
+      - name: Rodar testes unitários
         run: mvn test
+
+      - name: Gerar relatório de coverage
+        run: mvn jacoco:report
+
+      - name: Upload dos resultados dos testes
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: target/surefire-reports/
