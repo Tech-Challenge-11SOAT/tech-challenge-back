@@ -71,11 +71,11 @@ jobs:
 
       - name: Atualizar Deployment com nova imagem
         run: |
-          sed -i "s|image: nicolasmartinss/techchallenge-api:.*|image: $IMAGE|" infra/k8s/deployment.yaml
-          kubectl apply -f infra/k8s/
+          sed -i "s|image: nicolasmartinss/techchallenge-api:.*|image: $IMAGE|" infra/k8s/app/deployment.yaml
+          kubectl apply -f infra/k8s/app/
 
       - name: Deploy to Kubernetes
-        run: kubectl apply -f infra/k8s/
+        run: kubectl apply -f infra/k8s/app/
 
       - name: Esperar LoadBalancer
         run: |
