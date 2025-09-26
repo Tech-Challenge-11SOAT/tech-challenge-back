@@ -40,7 +40,6 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::601920909369:role/aws-actions
-          role-session-name: github-actions
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name tech-challenge-cluster --region us-east-1
