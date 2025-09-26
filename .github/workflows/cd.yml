@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "Aguardando o LoadBalancer estar pronto..."
           for i in {1..30}; do
-            LB_HOST=$(kubectl get svc tech-api-service -n techchallenge -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            LB_HOST=$(kubectl get svc tech-api -n techchallenge -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             if [ -n "$LB_HOST" ]; then
               echo "LOAD_BALANCER=$LB_HOST" >> $GITHUB_ENV
               break
