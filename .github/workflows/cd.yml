@@ -2,7 +2,7 @@ name: Deploy Back to EKS
 
 on:
   push:
-    branches: ["develp"]
+    branches: ["develop"]
 
 jobs:
   build-and-deploy:
