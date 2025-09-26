@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::601920909369:role/aws-actions
+      username: github-actions
+      groups:
+        - system:masters
+    - rolearn: arn:aws:iam::601920909369:role/AWSReservedSSO_AdministratorAccess_7d2e3ecab652bde7
+      username: nicolas
+      groups:
+        - system:masters
