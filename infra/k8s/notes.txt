@@ -1,6 +1,6 @@
 1 - Criar o namespace techchallenge e outro observabilidade
 
-2 - Vamos fazer o kubectl apply no banco de dados, já que é necessário para a aplicação funcionar
+2 - 
 
 3 - Vamos fazer o kubectl apply no app
 

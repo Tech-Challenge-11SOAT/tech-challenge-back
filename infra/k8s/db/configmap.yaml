@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mysql-config
-  namespace: techchallenge
-data:
-  MYSQL_DATABASE: techchallange_db
