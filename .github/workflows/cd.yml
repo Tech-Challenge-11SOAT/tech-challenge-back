@@ -48,11 +48,20 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name tech-challenge-cluster --region us-east-1
 
+      - name: Garantir namespace techchallenge
+        run: |
+          kubectl get namespace techchallenge || kubectl create namespace techchallenge
+
+      - name: Obter endpoint do RDS (via state no S3)
+        run: |
+          RDS_ENDPOINT=$(aws s3 cp s3://tech-challenge-soat11-terraform-state/rds/terraform/state - | jq -r '.outputs.rds_endpoint.value')
+          echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
+
       - name: Criar/atualizar Secret do banco
         run: |
           kubectl create secret generic tech-api-secret \
             --namespace techchallenge \
-            --from-literal=DB_HOST=$(aws ssm get-parameter --name /tech-challenge/rds/endpoint --query "Parameter.Value" --output text) \
+            --from-literal=DB_HOST=$RDS_ENDPOINT \
             --from-literal=DB_PORT=3306 \
             --from-literal=DB_NAME=${{ secrets.TF_VAR_DB_NAME }} \
             --from-literal=DB_USER=${{ secrets.TF_VAR_DB_USERNAME }} \
@@ -83,4 +92,3 @@ jobs:
       - name: Mostrar URL do serviço
         run: |
           echo "A aplicação está disponível em: http://$LOAD_BALANCER"
-
