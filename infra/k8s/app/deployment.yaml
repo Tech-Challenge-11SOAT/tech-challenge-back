@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tech-api
+  name: tech-challenge-back
   namespace: techchallenge
 spec:
   replicas: 2
@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: tech-api
-          image: nicolasmartinss/techchallenge-api:latest
-          imagePullPolicy: IfNotPresent
+          image: nicolasmartinss/techchallenge-api:${{ github.sha }}
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:
