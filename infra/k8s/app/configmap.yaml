@@ -5,7 +5,7 @@ metadata:
   namespace: techchallenge
 data:
   # Database
-  SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/techchallange_db?createDatabaseIfNotExist=true
+  SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
   SPRING_DATASOURCE_USERNAME: root
   SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
