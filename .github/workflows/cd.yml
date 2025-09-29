@@ -1,6 +1,7 @@
 name: Deploy Back to EKS
 
 on:
+  workflow_dispatch:
   push:
     branches: ["develop"]
 
