@@ -6,7 +6,7 @@ metadata:
 data:
   # Database
   SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
-  SPRING_DATASOURCE_USERNAME: root
+  SPRING_DATASOURCE_USERNAME: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   # JWT Expiration
