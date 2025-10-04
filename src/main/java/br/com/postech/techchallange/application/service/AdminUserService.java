@@ -100,7 +100,13 @@ public class AdminUserService implements CadastrarAdminUseCase, AutenticarAdminU
 
 	@Override
 	public AdminUser buscarPorEmail(String email) {
-		return userRepository.buscarPorEmail(email).orElseThrow(() -> new RuntimeException("Admin não encontrado"));
+		return userRepository.buscarPorEmail(email)
+				.map(user -> {
+					List<AdminRole> roles = adminRoleRepository.listarRolesPorAdminId(user.getId());
+					user.setRoles(roles);
+					return user;
+				})
+				.orElseThrow(() -> new RuntimeException("Admin não encontrado"));
 	}
 
 	@Override
